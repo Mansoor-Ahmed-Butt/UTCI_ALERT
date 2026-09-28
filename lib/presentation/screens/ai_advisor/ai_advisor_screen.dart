@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/responsive.dart';
+import '../../../services/tts_service.dart';
 import '../../controllers/ai_advisor_controller.dart';
 import '../../controllers/dashboard_controller.dart';
-import '../../../services/tts_service.dart';
 
 class AiAdvisorScreen extends GetView<AiAdvisorController> {
   const AiAdvisorScreen({super.key});
@@ -25,22 +25,21 @@ class AiAdvisorScreen extends GetView<AiAdvisorController> {
                 color: AppColors.accent.withValues(alpha: 0.16),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.psychology,
-                  color: AppColors.accent, size: 22),
+              child: const Icon(Icons.psychology, color: AppColors.accent, size: 22),
             ),
             const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'AI Heat Advisor',
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                  'AI Thermal Safety Advisor',
+                  style: TextStyle(fontSize: 16.5, fontWeight: FontWeight.bold),
                 ),
                 Obx(
                   () => Text(
                     '${dashboard.activeRole.value.label} · ${dashboard.selectedCity.value.name}',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 11.5,
                       color: isDark ? Colors.white60 : Colors.black54,
                     ),
                   ),
@@ -53,13 +52,11 @@ class AiAdvisorScreen extends GetView<AiAdvisorController> {
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints:
-                BoxConstraints(maxWidth: Responsive.contentWidth(context)),
+            constraints: BoxConstraints(maxWidth: Responsive.contentWidth(context)),
             child: Column(
               children: [
-                // Context bar: Live thermal condition
-                _buildThermalContextBar(context,
-                    dashboard: dashboard, isDark: isDark),
+                // Context bar: Live thermal condition & Active Language
+                _buildThermalContextBar(context, dashboard: dashboard, isDark: isDark),
 
                 // Quick Prompt Chips
                 _buildPromptChips(context, isDark: isDark),
@@ -69,10 +66,8 @@ class AiAdvisorScreen extends GetView<AiAdvisorController> {
                   child: Obx(() {
                     return ListView.builder(
                       controller: controller.scrollController,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
-                      itemCount: controller.messages.length +
-                          (controller.isThinking.value ? 1 : 0),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      itemCount: controller.messages.length + (controller.isThinking.value ? 1 : 0),
                       itemBuilder: (context, index) {
                         if (index == controller.messages.length) {
                           return _buildThinkingBubble(context, isDark: isDark);
@@ -109,42 +104,49 @@ class AiAdvisorScreen extends GetView<AiAdvisorController> {
       final val = status?.value ?? 34.0;
       final cat = status?.category ?? 'strong';
       final color = AppColors.statusColor(cat);
+      final lang = dashboard.nativeLanguage.value;
 
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
         color: color.withValues(alpha: isDark ? 0.14 : 0.08),
         child: Row(
           children: [
             Container(
-              width: 8,
-              height: 8,
+              width: 7,
+              height: 7,
               decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 7),
             Text(
-              'Live Ground Status: ',
+              '${status?.categoryLabel ?? 'Strong Heat Stress'} (${val.toStringAsFixed(1)}°C)',
               style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white70 : Colors.black87,
-              ),
-            ),
-            Text(
-              '${status?.categoryLabel ?? 'Strong Heat Stress'} (${val.toStringAsFixed(1)}°C UTCI)',
-              style: TextStyle(
-                fontSize: 12,
+                fontSize: 11.5,
                 fontWeight: FontWeight.bold,
                 color: color,
               ),
             ),
             const Spacer(),
-            const Icon(Icons.bolt, color: AppColors.accent, size: 16),
-            const Text(
-              'On-Device AI',
-              style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.accent),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E2430) : const Color(0xFFE2E6EE),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(lang.flag, style: const TextStyle(fontSize: 11)),
+                  const SizedBox(width: 4),
+                  Text(
+                    lang.nativeName,
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white70 : Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -154,7 +156,7 @@ class AiAdvisorScreen extends GetView<AiAdvisorController> {
 
   Widget _buildPromptChips(BuildContext context, {required bool isDark}) {
     return Container(
-      height: 44,
+      height: 42,
       margin: const EdgeInsets.symmetric(vertical: 6),
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
@@ -167,13 +169,13 @@ class AiAdvisorScreen extends GetView<AiAdvisorController> {
             label: Text(
               prompt,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 11.5,
                 fontWeight: FontWeight.w600,
                 color: isDark ? Colors.white70 : Colors.black87,
               ),
             ),
-            backgroundColor:
-                isDark ? const Color(0xFF1E232E) : const Color(0xFFF0F2F6),
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            backgroundColor: isDark ? const Color(0xFF1B202A) : const Color(0xFFF0F2F6),
             side: BorderSide(
               color: isDark ? AppColors.dividerDark : AppColors.dividerLight,
             ),
@@ -194,8 +196,8 @@ class AiAdvisorScreen extends GetView<AiAdvisorController> {
       return Align(
         alignment: Alignment.centerRight,
         child: Container(
-          margin: const EdgeInsets.only(bottom: 12, left: 48),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          margin: const EdgeInsets.only(bottom: 10, left: 48),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: const BoxDecoration(
             color: AppColors.accent,
             borderRadius: BorderRadius.only(
@@ -209,7 +211,7 @@ class AiAdvisorScreen extends GetView<AiAdvisorController> {
             message.text,
             style: const TextStyle(
               color: Colors.black87,
-              fontSize: 14,
+              fontSize: 13.5,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -221,24 +223,24 @@ class AiAdvisorScreen extends GetView<AiAdvisorController> {
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 14, right: 32),
-        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: 12, right: 30),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF191D26) : Colors.white,
+          color: isDark ? const Color(0xFF171B23) : Colors.white,
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(4),
-            topRight: Radius.circular(18),
-            bottomLeft: Radius.circular(18),
-            bottomRight: Radius.circular(18),
+            topRight: Radius.circular(16),
+            bottomLeft: Radius.circular(16),
+            bottomRight: Radius.circular(16),
           ),
           border: Border.all(
             color: isDark ? AppColors.dividerDark : AppColors.dividerLight,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -250,10 +252,10 @@ class AiAdvisorScreen extends GetView<AiAdvisorController> {
               children: [
                 const Row(
                   children: [
-                    Icon(Icons.auto_awesome, size: 15, color: AppColors.accent),
-                    SizedBox(width: 6),
+                    Icon(Icons.auto_awesome, size: 14, color: AppColors.accent),
+                    SizedBox(width: 5),
                     Text(
-                      'UTCI Thermal Copilot',
+                      'AI Heat Advisor',
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
@@ -263,43 +265,35 @@ class AiAdvisorScreen extends GetView<AiAdvisorController> {
                   ],
                 ),
                 Obx(() {
-                  final isCurrentlySpeaking = tts.isSpeaking.value &&
-                      tts.currentText.value
-                          .contains(message.text.substring(0, 20));
+                  final isCurrentlySpeaking =
+                      tts.isSpeaking.value && tts.currentText.value.contains(message.text.substring(0, 15));
 
                   return InkWell(
                     onTap: () => controller.speakMessage(message.text),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(14),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
                         color: isCurrentlySpeaking
                             ? AppColors.accent
                             : AppColors.accent.withValues(alpha: 0.14),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(14),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            isCurrentlySpeaking
-                                ? Icons.volume_up
-                                : Icons.volume_up_outlined,
-                            size: 14,
-                            color: isCurrentlySpeaking
-                                ? Colors.black87
-                                : AppColors.accent,
+                            isCurrentlySpeaking ? Icons.volume_up : Icons.volume_up_outlined,
+                            size: 13,
+                            color: isCurrentlySpeaking ? Colors.black87 : AppColors.accent,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             isCurrentlySpeaking ? 'Stop' : 'Listen',
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: 10.5,
                               fontWeight: FontWeight.bold,
-                              color: isCurrentlySpeaking
-                                  ? Colors.black87
-                                  : AppColors.accent,
+                              color: isCurrentlySpeaking ? Colors.black87 : AppColors.accent,
                             ),
                           ),
                         ],
@@ -309,15 +303,13 @@ class AiAdvisorScreen extends GetView<AiAdvisorController> {
                 }),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Text(
               message.text,
               style: TextStyle(
-                fontSize: 13.5,
-                height: 1.5,
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.9)
-                    : Colors.black87,
+                fontSize: 13,
+                height: 1.45,
+                color: isDark ? Colors.white.withValues(alpha: 0.92) : Colors.black87,
               ),
             ),
           ],
@@ -331,10 +323,10 @@ class AiAdvisorScreen extends GetView<AiAdvisorController> {
       alignment: Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF191D26) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          color: isDark ? const Color(0xFF171B23) : Colors.white,
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isDark ? AppColors.dividerDark : AppColors.dividerLight,
           ),
@@ -343,15 +335,14 @@ class AiAdvisorScreen extends GetView<AiAdvisorController> {
           mainAxisSize: MainAxisSize.min,
           children: [
             SizedBox(
-              width: 14,
-              height: 14,
-              child: CircularProgressIndicator(
-                  strokeWidth: 2, color: AppColors.accent),
+              width: 13,
+              height: 13,
+              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.accent),
             ),
-            SizedBox(width: 10),
+            SizedBox(width: 9),
             Text(
-              'Synthesizing thermal safety guidance...',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+              'Consulting AI Biometeorological Model...',
+              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500),
             ),
           ],
         ),
@@ -363,7 +354,7 @@ class AiAdvisorScreen extends GetView<AiAdvisorController> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkMode : Colors.white,
+        color: isDark ? const Color(0xFF12161E) : Colors.white,
         border: Border(
           top: BorderSide(
             color: isDark ? AppColors.dividerDark : AppColors.dividerLight,
@@ -376,19 +367,16 @@ class AiAdvisorScreen extends GetView<AiAdvisorController> {
             child: TextField(
               controller: controller.textController,
               decoration: InputDecoration(
-                hintText:
-                    'Ask thermal advisor (e.g. hydration, symptoms, tin roof)...',
+                hintText: 'Ask thermal safety advice (e.g. hydration, work hours)...',
                 hintStyle: TextStyle(
-                  fontSize: 13,
+                  fontSize: 12.5,
                   color: isDark ? Colors.white38 : Colors.black38,
                 ),
                 filled: true,
-                fillColor:
-                    isDark ? const Color(0xFF1E232E) : const Color(0xFFF2F4F7),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                fillColor: isDark ? const Color(0xFF1B202A) : const Color(0xFFF1F3F6),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(22),
                   borderSide: BorderSide.none,
                 ),
               ),
@@ -397,10 +385,12 @@ class AiAdvisorScreen extends GetView<AiAdvisorController> {
           ),
           const SizedBox(width: 8),
           IconButton.filled(
-            style: IconButton.styleFrom(backgroundColor: AppColors.accent),
-            icon: const Icon(Icons.arrow_upward, color: Colors.black87),
-            onPressed: () =>
-                controller.sendQuery(controller.textController.text),
+            style: IconButton.styleFrom(
+              backgroundColor: AppColors.accent,
+              padding: const EdgeInsets.all(10),
+            ),
+            icon: const Icon(Icons.arrow_upward, color: Colors.black87, size: 20),
+            onPressed: () => controller.sendQuery(controller.textController.text),
           ),
         ],
       ),

@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/responsive.dart';
+import '../../../data/models/user_role.dart';
+import '../../../services/native_language_service.dart';
+import '../../../services/tts_service.dart';
 import '../../controllers/dashboard_controller.dart';
 import '../../widgets/city_selector_sheet.dart';
+import '../../widgets/geofence_detail_dialog.dart';
 import '../../widgets/metric_card.dart';
 import '../../widgets/utci_gauge.dart';
-import '../../../data/models/user_role.dart';
 
 class DashboardScreen extends GetView<DashboardController> {
   const DashboardScreen({super.key});
@@ -23,45 +26,56 @@ class DashboardScreen extends GetView<DashboardController> {
           final city = controller.selectedCity.value;
           final role = controller.activeRole.value;
           final advice = controller.dynamicAdvice.value;
+          final lang = controller.nativeLanguage.value;
+          final geofence = controller.geofenceStatus.value;
 
           return RefreshIndicator(
             onRefresh: controller.refreshData,
             color: AppColors.accent,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
               child: Center(
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
                     maxWidth: Responsive.contentWidth(context),
                   ),
                   child: Responsive(
-                    mobile: _buildMobileLayout(
+                    mobile: _buildContent(
                       context,
                       status: status,
                       weather: weather,
                       city: city,
                       role: role,
                       advice: advice,
+                      lang: lang,
+                      geofence: geofence,
                       isDark: isDark,
+                      isWide: false,
                     ),
-                    tablet: _buildTabletLayout(
+                    tablet: _buildContent(
                       context,
                       status: status,
                       weather: weather,
                       city: city,
                       role: role,
                       advice: advice,
+                      lang: lang,
+                      geofence: geofence,
                       isDark: isDark,
+                      isWide: true,
                     ),
-                    desktop: _buildTabletLayout(
+                    desktop: _buildContent(
                       context,
                       status: status,
                       weather: weather,
                       city: city,
                       role: role,
                       advice: advice,
+                      lang: lang,
+                      geofence: geofence,
                       isDark: isDark,
+                      isWide: true,
                     ),
                   ),
                 ),
@@ -73,84 +87,167 @@ class DashboardScreen extends GetView<DashboardController> {
     );
   }
 
+  Widget _buildContent(
+    BuildContext context, {
+    required dynamic status,
+    required dynamic weather,
+    required dynamic city,
+    required dynamic role,
+    required dynamic advice,
+    required NativeLanguage lang,
+    required dynamic geofence,
+    required bool isDark,
+    required bool isWide,
+  }) {
+    if (isWide) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildTopBar(context, city: city, role: role, lang: lang, geofence: geofence, isDark: isDark),
+          const SizedBox(height: 20),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 5,
+                child: Column(
+                  children: [
+                    _buildGaugeCard(context, status: status, lang: lang, isDark: isDark),
+                    const SizedBox(height: 14),
+                    _buildNativeAlertBanner(context, status: status, role: role, lang: lang, isDark: isDark),
+                    const SizedBox(height: 14),
+                    _buildHourlyMiniTrend(context, isDark: isDark),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 18),
+              Expanded(
+                flex: 5,
+                child: Column(
+                  children: [
+                    if (advice != null) _buildDeClutteredAdviceGrid(context, advice: advice, isDark: isDark),
+                    const SizedBox(height: 14),
+                    if (weather != null) _buildMetricsGrid(context, weather: weather),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildTopBar(context, city: city, role: role, lang: lang, geofence: geofence, isDark: isDark),
+        const SizedBox(height: 16),
+
+        // UTCI Gauge Card
+        _buildGaugeCard(context, status: status, lang: lang, isDark: isDark),
+        const SizedBox(height: 14),
+
+        // High Impact Native Language Alert Banner (Clean, no wall of text!)
+        _buildNativeAlertBanner(context, status: status, role: role, lang: lang, isDark: isDark),
+        const SizedBox(height: 14),
+
+        // AI Safety Action Micro-Cards
+        if (advice != null) ...[
+          _buildDeClutteredAdviceGrid(context, advice: advice, isDark: isDark),
+          const SizedBox(height: 14),
+        ],
+
+        // Environmental Metrics Grid
+        if (weather != null) ...[
+          _buildMetricsGrid(context, weather: weather),
+          const SizedBox(height: 14),
+        ],
+
+        // 24H Mini Progression
+        _buildHourlyMiniTrend(context, isDark: isDark),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+
   Widget _buildTopBar(
     BuildContext context, {
     required dynamic city,
     required dynamic role,
+    required NativeLanguage lang,
+    required dynamic geofence,
     required bool isDark,
   }) {
+    final isDanger = geofence.isInsideDangerZone;
+    final geofenceColor = isDanger ? AppColors.extremeStress : const Color(0xFF10B981);
+
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // City Selector Pill
-            InkWell(
-              onTap: () => _openCitySelector(context),
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? const Color(0xFF1E232E)
-                      : const Color(0xFFF0F2F6),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color:
-                        isDark ? AppColors.dividerDark : AppColors.dividerLight,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.location_on,
-                        color: AppColors.accent, size: 18),
-                    const SizedBox(width: 6),
-                    Text(
-                      city.name,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
+            // City / Location Selector Pill
+            Expanded(
+              child: InkWell(
+                onTap: () => _openCitySelector(context),
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF1B202A) : const Color(0xFFF1F3F7),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDark ? AppColors.dividerDark : AppColors.dividerLight,
                     ),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.keyboard_arrow_down, size: 18),
-                  ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.location_on, color: AppColors.accent, size: 17),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          city.name,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.keyboard_arrow_down, size: 16),
+                    ],
+                  ),
                 ),
               ),
             ),
+            const SizedBox(width: 8),
 
             // Profile Switcher Pill
             InkWell(
               onTap: () => _openProfileSelector(context),
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(16),
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 decoration: BoxDecoration(
                   color: AppColors.accent.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: AppColors.accent.withValues(alpha: 0.4),
-                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.accent.withValues(alpha: 0.35)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(role.icon, color: AppColors.accent, size: 16),
-                    const SizedBox(width: 6),
+                    Icon(role.icon, color: AppColors.accent, size: 15),
+                    const SizedBox(width: 5),
                     Text(
                       role.label,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        fontSize: 11.5,
                         color: AppColors.accent,
                       ),
                     ),
                     const SizedBox(width: 2),
-                    const Icon(Icons.swap_horiz,
-                        size: 16, color: AppColors.accent),
+                    const Icon(Icons.swap_horiz, size: 14, color: AppColors.accent),
                   ],
                 ),
               ),
@@ -158,135 +255,109 @@ class DashboardScreen extends GetView<DashboardController> {
           ],
         ),
         const SizedBox(height: 8),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            city.historicalTrend,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: isDark ? Colors.white38 : Colors.black45,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 
-  Widget _buildMobileLayout(
-    BuildContext context, {
-    required dynamic status,
-    required dynamic weather,
-    required dynamic city,
-    required dynamic role,
-    required dynamic advice,
-    required bool isDark,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _buildTopBar(context, city: city, role: role, isDark: isDark),
-        const SizedBox(height: 20),
-
-        // UTCI Gauge Card
-        _buildGaugeCard(context, status: status, isDark: isDark),
-        const SizedBox(height: 16),
-
-        // Plain Language Alert Banner
-        _buildAlertBanner(context, status: status, role: role, isDark: isDark),
-        const SizedBox(height: 16),
-
-        // AI Dynamic Action Card
-        if (advice != null) ...[
-          _buildAdviceCard(context, advice: advice, isDark: isDark),
-          const SizedBox(height: 16),
-        ],
-
-        // Environmental Metrics Grid
-        if (weather != null) ...[
-          _buildMetricsGrid(context, weather: weather),
-          const SizedBox(height: 16),
-        ],
-
-        // 24H Mini Trend
-        _buildHourlyMiniTrend(context, isDark: isDark),
-        const SizedBox(height: 30),
-      ],
-    );
-  }
-
-  Widget _buildTabletLayout(
-    BuildContext context, {
-    required dynamic status,
-    required dynamic weather,
-    required dynamic city,
-    required dynamic role,
-    required dynamic advice,
-    required bool isDark,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _buildTopBar(context, city: city, role: role, isDark: isDark),
-        const SizedBox(height: 24),
+        // Sub-bar: Geofence Badge & Language Selector Pill
         Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Left Column (Gauge & Plain Alert)
-            Expanded(
-              flex: 5,
-              child: Column(
-                children: [
-                  _buildGaugeCard(context, status: status, isDark: isDark),
-                  const SizedBox(height: 16),
-                  _buildAlertBanner(context,
-                      status: status, role: role, isDark: isDark),
-                  const SizedBox(height: 16),
-                  _buildHourlyMiniTrend(context, isDark: isDark),
-                ],
+            // Geofence Status Pill
+            InkWell(
+              onTap: () => _openGeofenceDialog(context),
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                decoration: BoxDecoration(
+                  color: geofenceColor.withValues(alpha: isDark ? 0.16 : 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: geofenceColor.withValues(alpha: 0.4), width: 1),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      isDanger ? Icons.warning_amber_rounded : Icons.shield_outlined,
+                      color: geofenceColor,
+                      size: 13,
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      geofence.badgeLabel,
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.bold,
+                        color: geofenceColor,
+                        letterSpacing: 0.4,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(Icons.info_outline, size: 12, color: geofenceColor),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(width: 20),
 
-            // Right Column (Advice & Metrics)
-            Expanded(
-              flex: 5,
-              child: Column(
-                children: [
-                  if (advice != null)
-                    _buildAdviceCard(context, advice: advice, isDark: isDark),
-                  const SizedBox(height: 16),
-                  if (weather != null)
-                    _buildMetricsGrid(context, weather: weather),
-                ],
+            // Native Language Selector Pill
+            InkWell(
+              onTap: () => _openLanguageSelector(context),
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E2430) : const Color(0xFFEBF0F7),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isDark ? AppColors.dividerDark : AppColors.dividerLight,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(lang.flag, style: const TextStyle(fontSize: 12)),
+                    const SizedBox(width: 5),
+                    Text(
+                      lang.nativeName,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white70 : Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(width: 3),
+                    const Icon(Icons.keyboard_arrow_down, size: 13),
+                  ],
+                ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 30),
       ],
     );
   }
 
-  Widget _buildGaugeCard(BuildContext context,
-      {required dynamic status, required bool isDark}) {
+  Widget _buildGaugeCard(
+    BuildContext context, {
+    required dynamic status,
+    required NativeLanguage lang,
+    required bool isDark,
+  }) {
     final val = status?.value ?? 34.0;
     final cat = status?.category ?? 'strong';
     final catLabel = status?.categoryLabel ?? 'Strong Heat Stress';
+    final tts = Get.find<TtsService>();
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 18),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF171B22) : Colors.white,
+        color: isDark ? const Color(0xFF161A22) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isDark ? AppColors.dividerDark : AppColors.dividerLight,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
-            offset: const Offset(0, 4),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -301,7 +372,7 @@ class DashboardScreen extends GetView<DashboardController> {
                   const Text(
                     'THERMAL COMFORT RADAR',
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: 10.5,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1.0,
                       color: AppColors.accent,
@@ -309,37 +380,69 @@ class DashboardScreen extends GetView<DashboardController> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'ERA5-HEAT Reanalysis Standard',
+                    'Universal Thermal Climate Index (UTCI)',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 11,
                       color: isDark ? Colors.white54 : Colors.black45,
                     ),
                   ),
                 ],
               ),
-              IconButton(
-                icon: const Icon(Icons.volume_up_outlined,
-                    color: AppColors.accent),
-                tooltip: 'Listen to heat conditions',
-                onPressed: controller.readAlertAloud,
-              ),
+
+              // Voice Read Aloud Button
+              Obx(() {
+                final isSpeaking = tts.isSpeaking.value;
+                return InkWell(
+                  onTap: controller.readAlertAloud,
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: isSpeaking ? AppColors.accent : AppColors.accent.withValues(alpha: 0.14),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppColors.accent.withValues(alpha: 0.4),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          isSpeaking ? Icons.volume_up : Icons.volume_up_outlined,
+                          size: 15,
+                          color: isSpeaking ? Colors.black87 : AppColors.accent,
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          isSpeaking ? 'Stop' : 'Voice (${lang.code.toUpperCase()})',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: isSpeaking ? Colors.black87 : AppColors.accent,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Center(
             child: UtciGauge(
               value: val,
               category: cat,
               categoryLabel: catLabel,
-              size: 230,
+              size: 215,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Text(
-            'Combines temperature, humidity, wind & direct solar load',
+            'Combines temperature, solar radiation, humidity & wind airflow',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 11,
               color: isDark ? Colors.white38 : Colors.black45,
             ),
           ),
@@ -348,61 +451,156 @@ class DashboardScreen extends GetView<DashboardController> {
     );
   }
 
-  Widget _buildAlertBanner(
+  /// High-impact native language warning banner.
+  /// Extremely clean: 1-2 sentence core message + 3 quick glanceable action badges.
+  Widget _buildNativeAlertBanner(
     BuildContext context, {
     required dynamic status,
     required dynamic role,
+    required NativeLanguage lang,
     required bool isDark,
   }) {
     final cat = status?.category ?? 'strong';
+    final utci = status?.value ?? 34.0;
     final color = AppColors.statusColor(cat);
-    final warningText = status?.suggestion ??
-        'Elevated thermal strain. Stay hydrated and schedule frequent shade rests.';
+
+    final langService = Get.find<NativeLanguageService>();
+    final nativeWarning = langService.getNativeWarning(
+      category: cat,
+      role: role,
+      utci: utci,
+      lang: lang,
+    );
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: isDark ? 0.18 : 0.12),
-        borderRadius: BorderRadius.circular(16),
+        color: color.withValues(alpha: isDark ? 0.16 : 0.10),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: color.withValues(alpha: 0.4), width: 1.2),
       ),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(Icons.warning_amber_rounded,
-                color: Colors.white, size: 22),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 18),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Row(
+                  children: [
+                    Text(
+                      'Live Hazard Advisory',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: color,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        '${lang.nativeName} (${lang.code.toUpperCase()})',
+                        style: TextStyle(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.bold,
+                          color: color,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(Icons.volume_up, size: 18),
+                color: color,
+                tooltip: 'Listen in ${lang.nativeName}',
+                onPressed: controller.readAlertAloud,
+              ),
+            ],
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Community Heat Alert',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  warningText,
-                  style: TextStyle(
-                    fontSize: 13,
-                    height: 1.4,
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.9)
-                        : Colors.black87,
-                  ),
-                ),
-              ],
+          const SizedBox(height: 10),
+
+          // Native warning text
+          Text(
+            nativeWarning,
+            textDirection: lang.isRtl ? TextDirection.rtl : TextDirection.ltr,
+            style: TextStyle(
+              fontSize: 13.5,
+              height: 1.45,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white.withValues(alpha: 0.95) : Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // 3 Quick Action Pills (No wall of text!)
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              _actionChip(
+                icon: Icons.timer_outlined,
+                label: utci >= 38 ? '15m Work / 45m Rest' : '45m Work / 15m Rest',
+                color: color,
+                isDark: isDark,
+              ),
+              _actionChip(
+                icon: Icons.water_drop_outlined,
+                label: utci >= 38 ? '1.0L / hour' : '500–750ml / hour',
+                color: color,
+                isDark: isDark,
+              ),
+              _actionChip(
+                icon: Icons.wb_shade_outlined,
+                label: 'Deep Shade Mandatory',
+                color: color,
+                isDark: isDark,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _actionChip({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required bool isDark,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E232E) : Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: color),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white70 : Colors.black87,
             ),
           ),
         ],
@@ -410,12 +608,16 @@ class DashboardScreen extends GetView<DashboardController> {
     );
   }
 
-  Widget _buildAdviceCard(BuildContext context,
-      {required dynamic advice, required bool isDark}) {
+  /// 4-Tile Modern Micro-Cards replacing the old long text rows
+  Widget _buildDeClutteredAdviceGrid(
+    BuildContext context, {
+    required dynamic advice,
+    required bool isDark,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF171B22) : Colors.white,
+        color: isDark ? const Color(0xFF161A22) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isDark ? AppColors.dividerDark : AppColors.dividerLight,
@@ -435,119 +637,129 @@ class DashboardScreen extends GetView<DashboardController> {
                       color: AppColors.accent.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.auto_awesome,
-                        size: 18, color: AppColors.accent),
+                    child: const Icon(Icons.auto_awesome, size: 16, color: AppColors.accent),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   const Text(
-                    'AI Heat Safety Plan',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                    ),
+                    'AI Safety Plan',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5),
                   ),
                 ],
               ),
-              InkWell(
-                onTap: controller.readAlertAloud,
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: AppColors.accent,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.volume_up, size: 14, color: Colors.black87),
-                      SizedBox(width: 4),
-                      Text(
-                        'Read Aloud',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ],
-                  ),
+              Text(
+                'Instant Field Protocol',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white38 : Colors.black45,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           Text(
             advice.headline,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
           ),
           const SizedBox(height: 12),
-          _adviceRow(
-            icon: Icons.timer_outlined,
-            title: 'Work / Rest Cycle',
-            content: advice.workRestCycle,
-            isDark: isDark,
+
+          // 2x2 Clean Tile Layout
+          Row(
+            children: [
+              Expanded(
+                child: _adviceTile(
+                  title: 'Work / Rest',
+                  value: advice.workRestCycle,
+                  icon: Icons.timer_outlined,
+                  color: Colors.amber,
+                  isDark: isDark,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _adviceTile(
+                  title: 'Hydration',
+                  value: advice.hydrationGoal,
+                  icon: Icons.water_drop_outlined,
+                  color: Colors.blueAccent,
+                  isDark: isDark,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 10),
-          _adviceRow(
-            icon: Icons.water_drop_outlined,
-            title: 'Hydration Target',
-            content: advice.hydrationGoal,
-            isDark: isDark,
-          ),
-          const SizedBox(height: 10),
-          _adviceRow(
-            icon: Icons.task_alt_outlined,
-            title: 'Targeted Action',
-            content: advice.profileAction,
-            isDark: isDark,
-          ),
-          const SizedBox(height: 10),
-          _adviceRow(
-            icon: Icons.ac_unit_outlined,
-            title: 'Cooling Technique',
-            content: advice.coolingMethod,
-            isDark: isDark,
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: _adviceTile(
+                  title: 'Field Action',
+                  value: advice.profileAction,
+                  icon: Icons.shield_outlined,
+                  color: Colors.tealAccent,
+                  isDark: isDark,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _adviceTile(
+                  title: 'Cooling Method',
+                  value: advice.coolingMethod,
+                  icon: Icons.ac_unit_outlined,
+                  color: AppColors.accent,
+                  isDark: isDark,
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _adviceRow({
-    required IconData icon,
+  Widget _adviceTile({
     required String title,
-    required String content,
+    required String value,
+    required IconData icon,
+    required Color color,
     required bool isDark,
   }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 17, color: AppColors.accent),
-        const SizedBox(width: 10),
-        Expanded(
-          child: RichText(
-            text: TextSpan(
-              style: TextStyle(
-                fontSize: 13,
-                height: 1.35,
-                color: isDark ? Colors.white70 : Colors.black87,
-              ),
-              children: [
-                TextSpan(
-                  text: '$title: ',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E232E) : const Color(0xFFF6F8FA),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 14, color: color),
+              const SizedBox(width: 5),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white60 : Colors.black54,
                 ),
-                TextSpan(text: content),
-              ],
-            ),
+              ),
+            ],
           ),
-        ),
-      ],
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 11.5,
+              height: 1.3,
+              fontWeight: FontWeight.w500,
+              color: isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black87,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 
@@ -556,7 +768,7 @@ class DashboardScreen extends GetView<DashboardController> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: 2,
-      childAspectRatio: 1.55,
+      childAspectRatio: 1.62,
       mainAxisSpacing: 10,
       crossAxisSpacing: 10,
       children: [
@@ -574,9 +786,7 @@ class DashboardScreen extends GetView<DashboardController> {
           unit: '%',
           icon: Icons.water_drop_outlined,
           iconColor: Colors.blueAccent,
-          subtitle: weather.relativeHumidity > 60
-              ? 'High sweat barrier'
-              : 'Moderate sweat rate',
+          subtitle: weather.relativeHumidity > 60 ? 'High sweat barrier' : 'Normal sweat rate',
         ),
         MetricCard(
           label: 'Wind Speed',
@@ -592,7 +802,7 @@ class DashboardScreen extends GetView<DashboardController> {
           unit: '°C',
           icon: Icons.wb_sunny_outlined,
           iconColor: AppColors.accent,
-          subtitle: 'Direct radiation load',
+          subtitle: 'Direct solar radiance',
         ),
       ],
     );
@@ -604,9 +814,9 @@ class DashboardScreen extends GetView<DashboardController> {
       if (list.isEmpty) return const SizedBox.shrink();
 
       return Container(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF171B22) : Colors.white,
+          color: isDark ? const Color(0xFF161A22) : Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isDark ? AppColors.dividerDark : AppColors.dividerLight,
@@ -619,14 +829,11 @@ class DashboardScreen extends GetView<DashboardController> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '24-Hour Heat Stress Curve',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
+                  '24-Hour Thermal Progression',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
                 ),
                 Text(
-                  'UTCI Category Progression',
+                  'Hourly UTCI Curve',
                   style: TextStyle(
                     fontSize: 11,
                     color: AppColors.accent,
@@ -635,34 +842,28 @@ class DashboardScreen extends GetView<DashboardController> {
                 ),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 12),
             SizedBox(
-              height: 100,
+              height: 94,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: list.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 10),
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
                 itemBuilder: (context, index) {
                   final point = list[index];
                   final color = AppColors.statusColor(point.category);
 
                   return Container(
-                    width: 62,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    width: 58,
+                    padding: const EdgeInsets.symmetric(vertical: 6),
                     decoration: BoxDecoration(
                       color: point.isPeakDanger
                           ? color.withValues(alpha: 0.16)
-                          : (isDark
-                              ? const Color(0xFF1F242F)
-                              : const Color(0xFFF6F7F9)),
-                      borderRadius: BorderRadius.circular(14),
+                          : (isDark ? const Color(0xFF1E232E) : const Color(0xFFF6F8FA)),
+                      borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: point.isPeakDanger
-                            ? color
-                            : (isDark
-                                ? AppColors.dividerDark
-                                : AppColors.dividerLight),
-                        width: point.isPeakDanger ? 1.5 : 1.0,
+                        color: point.isPeakDanger ? color : (isDark ? AppColors.dividerDark : AppColors.dividerLight),
+                        width: point.isPeakDanger ? 1.4 : 1.0,
                       ),
                     ),
                     child: Column(
@@ -671,23 +872,20 @@ class DashboardScreen extends GetView<DashboardController> {
                         Text(
                           point.hourLabel,
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 10.5,
                             fontWeight: FontWeight.w600,
                             color: isDark ? Colors.white60 : Colors.black54,
                           ),
                         ),
                         Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: color,
-                            shape: BoxShape.circle,
-                          ),
+                          width: 7,
+                          height: 7,
+                          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
                         ),
                         Text(
                           '${point.utciValue.toStringAsFixed(0)}°',
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: 12.5,
                             fontWeight: FontWeight.bold,
                             color: color,
                           ),
@@ -717,16 +915,27 @@ class DashboardScreen extends GetView<DashboardController> {
     );
   }
 
-  void _openProfileSelector(BuildContext context) {
+  void _openGeofenceDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => GeofenceDetailDialog(
+        status: controller.geofenceStatus.value,
+        onRefreshLocation: controller.useGpsLocation,
+      ),
+    );
+  }
+
+  void _openLanguageSelector(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) {
-        final isDark = Theme.of(sheetContext).brightness == Brightness.dark;
         return Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           decoration: BoxDecoration(
-            color: isDark ? AppColors.darkMode : Colors.white,
+            color: isDark ? const Color(0xFF151922) : Colors.white,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
           child: Column(
@@ -743,53 +952,114 @@ class DashboardScreen extends GetView<DashboardController> {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
+              const Text(
+                'Choose Alert & Voice Language',
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 2),
+              const Text(
+                'Warnings, AI advice, and voice readings will adapt to this tongue.',
+                style: TextStyle(fontSize: 11.5, color: Colors.grey),
+              ),
+              const SizedBox(height: 14),
+              ...NativeLanguageService.supportedLanguages.map((lang) {
+                final isSelected = controller.nativeLanguage.value.code == lang.code;
+                return ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  leading: Text(lang.flag, style: const TextStyle(fontSize: 22)),
+                  title: Text(
+                    lang.nativeName,
+                    style: TextStyle(
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                      color: isSelected ? AppColors.accent : null,
+                    ),
+                  ),
+                  subtitle: Text(
+                    '${lang.name} (${lang.ttsLocale})',
+                    style: const TextStyle(fontSize: 11),
+                  ),
+                  trailing: isSelected
+                      ? const Icon(Icons.check_circle, color: AppColors.accent, size: 20)
+                      : null,
+                  onTap: () {
+                    controller.selectLanguage(lang);
+                    Navigator.pop(sheetContext);
+                  },
+                );
+              }),
+              const SizedBox(height: 10),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _openProfileSelector(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        final isDark = Theme.of(sheetContext).brightness == Brightness.dark;
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF151922) : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white24 : Colors.black12,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
               const Text(
                 'Switch Vulnerability Profile',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
               const Text(
-                'Dynamically adjusts work-rest ratios, hydration targets, and AI warnings.',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+                'Calibrates work-rest cycles and hydration targets to your field realities.',
+                style: TextStyle(fontSize: 11.5, color: Colors.grey),
               ),
-              const SizedBox(height: 16),
-              ...controller.activeRole.value.runtimeType == Null
-                  ? []
-                  : UserRole.values.map(
-                      (role) => Obx(() {
-                        final isSelected = controller.activeRole.value == role;
-                        return ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 4),
-                          leading: Icon(role.icon,
-                              color: isSelected
-                                  ? AppColors.accent
-                                  : (isDark ? Colors.white70 : Colors.black87)),
-                          title: Text(
-                            role.label,
-                            style: TextStyle(
-                              fontWeight: isSelected
-                                  ? FontWeight.bold
-                                  : FontWeight.w500,
-                              color: isSelected ? AppColors.accent : null,
-                            ),
-                          ),
-                          subtitle: Text(
-                            role.description,
-                            style: const TextStyle(fontSize: 11),
-                          ),
-                          trailing: isSelected
-                              ? const Icon(Icons.check_circle,
-                                  color: AppColors.accent)
-                              : null,
-                          onTap: () {
-                            controller.selectRole(role);
-                            Navigator.pop(sheetContext);
-                          },
-                        );
-                      }),
+              const SizedBox(height: 14),
+              ...UserRole.values.map(
+                (role) {
+                  final isSelected = controller.activeRole.value == role;
+                  return ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    leading: Icon(
+                      role.icon,
+                      color: isSelected ? AppColors.accent : (isDark ? Colors.white70 : Colors.black87),
                     ),
+                    title: Text(
+                      role.label,
+                      style: TextStyle(
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                        color: isSelected ? AppColors.accent : null,
+                      ),
+                    ),
+                    subtitle: Text(role.description, style: const TextStyle(fontSize: 11)),
+                    trailing: isSelected
+                        ? const Icon(Icons.check_circle, color: AppColors.accent, size: 20)
+                        : null,
+                    onTap: () {
+                      controller.selectRole(role);
+                      Navigator.pop(sheetContext);
+                    },
+                  );
+                },
+              ),
               const SizedBox(height: 10),
             ],
           ),

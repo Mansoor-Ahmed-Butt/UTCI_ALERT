@@ -10,7 +10,9 @@ import '../../data/models/weather_models.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/repositories/status_repository.dart';
 import '../../domain/services/ai_heat_advisor_service.dart';
+import '../../services/geofencing_service.dart';
 import '../../services/location_service.dart';
+import '../../services/native_language_service.dart';
 import '../../services/notification_service.dart';
 import '../../services/tts_service.dart';
 
@@ -22,6 +24,8 @@ class DashboardController extends GetxController {
   final WeatherRemoteDataSource _weatherRemote;
   final AiHeatAdvisorService _aiAdvisor;
   final TtsService _tts;
+  final NativeLanguageService _langService;
+  final GeofencingService _geofencingService;
 
   DashboardController({
     required StatusRepository statusRepository,
@@ -31,13 +35,17 @@ class DashboardController extends GetxController {
     required WeatherRemoteDataSource weatherRemote,
     required AiHeatAdvisorService aiAdvisor,
     required TtsService tts,
+    NativeLanguageService? langService,
+    GeofencingService? geofencingService,
   })  : _statusRepository = statusRepository,
         _authRepository = authRepository,
         _notificationService = notificationService,
         _locationService = locationService,
         _weatherRemote = weatherRemote,
         _aiAdvisor = aiAdvisor,
-        _tts = tts;
+        _tts = tts,
+        _langService = langService ?? Get.find<NativeLanguageService>(),
+        _geofencingService = geofencingService ?? Get.find<GeofencingService>();
 
   final Rx<CityLocation> selectedCity =
       Rx<CityLocation>(CityLocation.defaultAfricanCities.first);
@@ -49,17 +57,23 @@ class DashboardController extends GetxController {
   final RxBool isRefreshing = false.obs;
 
   AppUserModel? get user => _authRepository.cachedUser;
+  Rx<NativeLanguage> get nativeLanguage => _langService.activeLanguage;
+  Rx<GeofenceStatus> get geofenceStatus => _geofencingService.geofenceStatus;
 
   @override
   void onInit() {
     super.onInit();
 
-    // Initialize role from cached user or fallback to Outdoor Worker
     if (user != null) {
       activeRole.value = user!.role;
     }
 
-    // Load cached status immediately (offline first)
+    // Auto-detect language for initial city
+    _langService.autoUpdateForLocation(
+      selectedCity.value.country,
+      selectedCity.value.countryCode,
+    );
+
     status.value = _statusRepository.cachedStatus;
     if (status.value != null) {
       _updateAdvice();
@@ -97,6 +111,14 @@ class DashboardController extends GetxController {
       status.value = newStatus;
       await _statusRepository.cacheStatus(newStatus);
 
+      // Evaluate thermal geofence status
+      _geofencingService.evaluateLocation(
+        userLat: city.latitude,
+        userLon: city.longitude,
+        activeCity: city,
+        currentUtci: currentWeather.calculatedUtci,
+      );
+
       // Hourly forecast for mini-curve
       final hourly = await _weatherRemote.fetchHourlyForecast(
         lat: city.latitude,
@@ -114,31 +136,45 @@ class DashboardController extends GetxController {
 
   void selectCity(CityLocation city) {
     selectedCity.value = city;
+    _langService.autoUpdateForLocation(city.country, city.countryCode);
     refreshData();
   }
 
   Future<void> useGpsLocation() async {
     isRefreshing.value = true;
     try {
-      final pos = await _locationService.getCurrentPosition();
+      final pos = await _locationService.getCurrentPosition(performReverseGeocoding: true);
       if (pos != null) {
-        final gpsCity = CityLocation(
-          name: 'Current Location',
-          country: '${pos.latitude.toStringAsFixed(2)}°, ${pos.longitude.toStringAsFixed(2)}°',
+        final realCity = CityLocation(
+          name: pos.city,
+          country: pos.country.isNotEmpty ? pos.country : 'Local Area',
+          countryCode: pos.countryCode,
+          adminArea: pos.state,
           latitude: pos.latitude,
           longitude: pos.longitude,
-          climateZone: 'Local GPS Coordinates',
-          historicalTrend: 'Hyperlocal real-time assessment',
+          climateZone: 'Hyperlocal GPS Coordinates',
+          historicalTrend: 'Exact on-device geofence boundary scan',
+          isVulnerabilityHotspot: false,
         );
-        selectedCity.value = gpsCity;
+
+        selectedCity.value = realCity;
+        _langService.autoUpdateForLocation(pos.country, pos.countryCode);
         await refreshData();
       }
-    } catch (_) {}
-    isRefreshing.value = false;
+    } catch (e) {
+      debugPrint('Error obtaining GPS location: $e');
+    } finally {
+      isRefreshing.value = false;
+    }
   }
 
   void selectRole(UserRole role) {
     activeRole.value = role;
+    _updateAdvice();
+  }
+
+  void selectLanguage(NativeLanguage lang) {
+    _langService.setLanguage(lang, manual: true);
     _updateAdvice();
   }
 
@@ -148,6 +184,7 @@ class DashboardController extends GetxController {
       status: status.value!,
       role: activeRole.value,
       weather: weather.value,
+      language: _langService.activeLanguage.value,
     );
   }
 
@@ -167,11 +204,15 @@ class DashboardController extends GetxController {
 
   Future<void> readAlertAloud() async {
     if (status.value == null) return;
-    final advice = dynamicAdvice.value;
-    final text = advice != null
-        ? advice.toSpeechString()
-        : 'UTCI Alert for ${selectedCity.value.displayName}: ${status.value!.categoryLabel}, ${status.value!.value.toStringAsFixed(1)} degrees. ${status.value!.suggestion ?? ''}';
 
-    await _tts.speak(text);
+    final lang = _langService.activeLanguage.value;
+    final nativeWarning = _langService.getNativeWarning(
+      category: status.value!.category,
+      role: activeRole.value,
+      utci: status.value!.value,
+      lang: lang,
+    );
+
+    await _tts.speak(nativeWarning, languageCode: lang.ttsLocale);
   }
 }

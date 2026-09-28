@@ -10,7 +10,9 @@ import '../../data/repositories/status_repository_impl.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/repositories/status_repository.dart';
 import '../../domain/services/ai_heat_advisor_service.dart';
+import '../../services/geofencing_service.dart';
 import '../../services/location_service.dart';
+import '../../services/native_language_service.dart';
 import '../../services/notification_service.dart';
 import '../../services/tts_service.dart';
 
@@ -42,8 +44,12 @@ class InitialBinding extends Bindings {
     Get.put(NotificationService(), permanent: true);
     Get.put(LocationService(), permanent: true);
 
+    // Multilingual & Geofencing Intelligence
+    Get.put(NativeLanguageService(), permanent: true);
+    Get.put(GeofencingService(), permanent: true);
+
     // AI Heat Health Reasoning Engine
-    Get.put(AiHeatAdvisorService(), permanent: true);
+    Get.put(AiHeatAdvisorService(Get.find<Dio>()), permanent: true);
 
     // On-Device Text-To-Speech
     Get.put(TtsService(), permanent: true);

@@ -1,12 +1,40 @@
 import 'dart:math' as math;
 import 'package:dio/dio.dart';
 import '../../core/utils/utci_calculator.dart';
+import '../models/city_location.dart';
 import '../models/weather_models.dart';
 
 class WeatherRemoteDataSource {
   final Dio _dio;
 
   WeatherRemoteDataSource(this._dio);
+
+  Future<List<CityLocation>> searchCities(String query) async {
+    final clean = query.trim();
+    if (clean.length < 2) return [];
+
+    try {
+      final response = await _dio.get(
+        'https://geocoding-api.open-meteo.com/v1/search',
+        queryParameters: {
+          'name': clean,
+          'count': 12,
+          'language': 'en',
+          'format': 'json',
+        },
+      );
+
+      final results = response.data['results'] as List<dynamic>?;
+      if (results == null || results.isEmpty) return [];
+
+      return results
+          .map((item) =>
+              CityLocation.fromGeocodingJson(item as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
 
   Future<CurrentWeatherData> fetchCurrentWeather({
     required double lat,

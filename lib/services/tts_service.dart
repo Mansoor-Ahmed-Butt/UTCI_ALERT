@@ -7,7 +7,8 @@ class TtsService extends GetxService {
 
   final RxBool isSpeaking = false.obs;
   final RxString currentText = ''.obs;
-  final RxDouble speechRate = 0.5.obs;
+  final RxString currentLocale = 'en-US'.obs;
+  final RxDouble speechRate = 0.48.obs;
   final RxDouble pitch = 1.0.obs;
   final RxBool isAvailable = true.obs;
 
@@ -19,7 +20,7 @@ class TtsService extends GetxService {
 
   Future<void> _initTts() async {
     try {
-      await _tts.setLanguage('en-US');
+      await _tts.setLanguage(currentLocale.value);
       await _tts.setSpeechRate(speechRate.value);
       await _tts.setPitch(pitch.value);
 
@@ -48,7 +49,24 @@ class TtsService extends GetxService {
     }
   }
 
-  Future<void> speak(String text) async {
+  Future<void> setLanguage(String locale) async {
+    if (locale.trim().isEmpty) return;
+    try {
+      final success = await _tts.setLanguage(locale);
+      if (success == 1 || success == true) {
+        currentLocale.value = locale;
+      } else {
+        // Fallback to base language code (e.g. 'ar' if 'ar-SA' not found)
+        final baseCode = locale.split('-').first.split('_').first;
+        await _tts.setLanguage(baseCode);
+        currentLocale.value = baseCode;
+      }
+    } catch (e) {
+      debugPrint('TTS setLanguage error: $e');
+    }
+  }
+
+  Future<void> speak(String text, {String? languageCode}) async {
     final clean = text.trim();
     if (clean.isEmpty) return;
 
@@ -61,6 +79,11 @@ class TtsService extends GetxService {
       await _tts.stop();
       currentText.value = clean;
       isSpeaking.value = true;
+
+      if (languageCode != null && languageCode.isNotEmpty) {
+        await setLanguage(languageCode);
+      }
+
       await _tts.setSpeechRate(speechRate.value);
       await _tts.setPitch(pitch.value);
       await _tts.speak(clean);
@@ -93,9 +116,10 @@ class TtsService extends GetxService {
     } catch (_) {}
   }
 
-  Future<void> testVoice() async {
+  Future<void> testVoice({String? languageCode}) async {
     await speak(
       'UTCI Alert notification. Severe heat stress detected. Drink 250 milliliters of water immediately and seek shade.',
+      languageCode: languageCode,
     );
   }
 
