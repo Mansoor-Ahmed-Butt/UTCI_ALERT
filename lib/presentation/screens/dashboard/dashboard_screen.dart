@@ -927,12 +927,17 @@ class DashboardScreen extends GetView<DashboardController> {
 
   void _openLanguageSelector(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    const languages = NativeLanguageService.supportedLanguages;
 
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) {
         return Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(sheetContext).size.height * 0.75,
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF151922) : Colors.white,
@@ -963,31 +968,38 @@ class DashboardScreen extends GetView<DashboardController> {
                 style: TextStyle(fontSize: 11.5, color: Colors.grey),
               ),
               const SizedBox(height: 14),
-              ...NativeLanguageService.supportedLanguages.map((lang) {
-                final isSelected = controller.nativeLanguage.value.code == lang.code;
-                return ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  leading: Text(lang.flag, style: const TextStyle(fontSize: 22)),
-                  title: Text(
-                    lang.nativeName,
-                    style: TextStyle(
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                      color: isSelected ? AppColors.accent : null,
-                    ),
-                  ),
-                  subtitle: Text(
-                    '${lang.name} (${lang.ttsLocale})',
-                    style: const TextStyle(fontSize: 11),
-                  ),
-                  trailing: isSelected
-                      ? const Icon(Icons.check_circle, color: AppColors.accent, size: 20)
-                      : null,
-                  onTap: () {
-                    controller.selectLanguage(lang);
-                    Navigator.pop(sheetContext);
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: languages.length,
+                  itemBuilder: (context, index) {
+                    final lang = languages[index];
+                    final isSelected = controller.nativeLanguage.value.code == lang.code;
+                    return ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      leading: Text(lang.flag, style: const TextStyle(fontSize: 22)),
+                      title: Text(
+                        lang.nativeName,
+                        style: TextStyle(
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                          color: isSelected ? AppColors.accent : null,
+                        ),
+                      ),
+                      subtitle: Text(
+                        '${lang.name} (${lang.ttsLocale})',
+                        style: const TextStyle(fontSize: 11),
+                      ),
+                      trailing: isSelected
+                          ? const Icon(Icons.check_circle, color: AppColors.accent, size: 20)
+                          : null,
+                      onTap: () {
+                        controller.selectLanguage(lang);
+                        Navigator.pop(sheetContext);
+                      },
+                    );
                   },
-                );
-              }),
+                ),
+              ),
               const SizedBox(height: 10),
             ],
           ),
@@ -997,12 +1009,18 @@ class DashboardScreen extends GetView<DashboardController> {
   }
 
   void _openProfileSelector(BuildContext context) {
+    const roles = UserRole.values;
+
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) {
         final isDark = Theme.of(sheetContext).brightness == Brightness.dark;
         return Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(sheetContext).size.height * 0.75,
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF151922) : Colors.white,
@@ -1033,32 +1051,37 @@ class DashboardScreen extends GetView<DashboardController> {
                 style: TextStyle(fontSize: 11.5, color: Colors.grey),
               ),
               const SizedBox(height: 14),
-              ...UserRole.values.map(
-                (role) {
-                  final isSelected = controller.activeRole.value == role;
-                  return ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    leading: Icon(
-                      role.icon,
-                      color: isSelected ? AppColors.accent : (isDark ? Colors.white70 : Colors.black87),
-                    ),
-                    title: Text(
-                      role.label,
-                      style: TextStyle(
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                        color: isSelected ? AppColors.accent : null,
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: roles.length,
+                  itemBuilder: (context, index) {
+                    final role = roles[index];
+                    final isSelected = controller.activeRole.value == role;
+                    return ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      leading: Icon(
+                        role.icon,
+                        color: isSelected ? AppColors.accent : (isDark ? Colors.white70 : Colors.black87),
                       ),
-                    ),
-                    subtitle: Text(role.description, style: const TextStyle(fontSize: 11)),
-                    trailing: isSelected
-                        ? const Icon(Icons.check_circle, color: AppColors.accent, size: 20)
-                        : null,
-                    onTap: () {
-                      controller.selectRole(role);
-                      Navigator.pop(sheetContext);
-                    },
-                  );
-                },
+                      title: Text(
+                        role.label,
+                        style: TextStyle(
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                          color: isSelected ? AppColors.accent : null,
+                        ),
+                      ),
+                      subtitle: Text(role.description, style: const TextStyle(fontSize: 11)),
+                      trailing: isSelected
+                          ? const Icon(Icons.check_circle, color: AppColors.accent, size: 20)
+                          : null,
+                      onTap: () {
+                        controller.selectRole(role);
+                        Navigator.pop(sheetContext);
+                      },
+                    );
+                  },
+                ),
               ),
               const SizedBox(height: 10),
             ],
