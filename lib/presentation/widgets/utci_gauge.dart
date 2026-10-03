@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../core/theme/app_colors.dart';
 
 class UtciGauge extends StatefulWidget {
@@ -62,7 +63,7 @@ class _UtciGaugeState extends State<UtciGauge>
   @override
   Widget build(BuildContext context) {
     final statusColor = AppColors.statusColor(widget.category);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = context.isDark;
 
     return AnimatedBuilder(
       animation: _animation,
@@ -93,7 +94,7 @@ class _UtciGaugeState extends State<UtciGauge>
                       ),
                 ),
                 Text(
-                  'UTCI Equivalent',
+                  'utci_equivalent'.tr,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         fontWeight: FontWeight.w600,
                         fontSize: widget.size * 0.055,

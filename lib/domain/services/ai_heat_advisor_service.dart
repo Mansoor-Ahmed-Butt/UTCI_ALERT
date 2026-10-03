@@ -60,6 +60,8 @@ class AiHeatAdvisorService {
       return _buildFrenchAdvice(cat, utci, role);
     } else if (langCode == 'es') {
       return _buildSpanishAdvice(cat, utci, role);
+    } else if (langCode == 'hi') {
+      return _buildHindiAdvice(cat, utci, role);
     }
 
     switch (cat) {
@@ -207,6 +209,27 @@ class AiHeatAdvisorService {
     );
   }
 
+  DynamicAdviceResult _buildHindiAdvice(String cat, double utci, UserRole role) {
+    if (cat == 'extreme' || cat == 'very_strong') {
+      return const DynamicAdviceResult(
+        headline: 'गंभीर गर्मी: आपातकालीन सुरक्षा प्रोटोकॉल',
+        workRestCycle: '15 मिनट काम / 45 मिनट गहरी छाया में आराम',
+        hydrationGoal: 'प्रति घंटे 1 से 1.2 लीटर पानी ओआरएस के साथ पिएं',
+        profileAction: 'खुली धूप में काम बंद करें, साथी की निगरानी करें',
+        coolingMethod: 'गर्दन, माथे और कलाई पर ठंडा गीला कपड़ा रखें',
+        warningSign: 'चक्कर आना, पसीना रुकना या तेज सिरदर्द',
+      );
+    }
+    return const DynamicAdviceResult(
+      headline: 'गर्मी से बचाव के उपाय',
+      workRestCycle: '45 मिनट काम / 15 मिनट छाया में आराम',
+      hydrationGoal: 'हर घंटे 500 से 750 मिली लीटर पानी पिएं',
+      profileAction: 'भारी काम सुबह जल्दी या शाम को करें',
+      coolingMethod: 'हल्के सूती कपड़े पहनें और सिर को ढकें',
+      warningSign: 'हल्का सिरदर्द, थकान या गला सूखना',
+    );
+  }
+
   /// AI Chat copilot: calls live Google Gemini model when API key is provided,
   /// with dynamic contextual fallback when offline or demo key.
   Future<String> answerQuery({
@@ -338,7 +361,7 @@ CRITICAL INSTRUCTIONS:
     final category = currentStatus?.categoryLabel ?? 'Strong Heat Stress';
 
     if (language.code == 'ar') {
-      return '''💧 **إرشادات الأمان الحراري لـ ${role.label} في $cityName**
+      return '''💧 **إرشادات الأمان الحراري لـ ${role.localizedLabel} في $cityName**
 المؤشر الحراري الحالي: **$category (${utciVal.toStringAsFixed(1)}°C UTCI)**
 
 • **الترطيب الفوري:** اشرب **٢٥٠ مل ماء كل ١٥-٢٠ دقيقة** (لتر كامل في الساعة). أضف رشة ملح خفيفة لتجنب هبوط الصوديوم.
@@ -348,7 +371,7 @@ CRITICAL INSTRUCTIONS:
     }
 
     if (language.code == 'ur') {
-      return '''💧 **${role.label} کے لیے تھرمل سیفٹی پلان ($cityName)**
+      return '''💧 **${role.localizedLabel} کے لیے تھرمل سیفٹی پلان ($cityName)**
 موجودہ درجہ حرارت انڈیکس: **$category (${utciVal.toStringAsFixed(1)}°C UTCI)**
 
 • **پانی کا فوری ہدف:** ہر **15 سے 20 منٹ بعد ایک گلاس پانی** (فی گھنٹہ 1 لیٹر) پییں۔ لیموں پانی یا چٹکی نمک شامل کریں۔
@@ -358,7 +381,7 @@ CRITICAL INSTRUCTIONS:
     }
 
     if (language.code == 'sw') {
-      return '''💧 **Mwongozo wa Usalama wa Joto kwa ${role.label} ($cityName)**
+      return '''💧 **Mwongozo wa Usalama wa Joto kwa ${role.localizedLabel} ($cityName)**
 Kiwango cha Sasa: **$category (${utciVal.toStringAsFixed(1)}°C UTCI)**
 
 • **Unywaji Maji:** Kunywa glasi 1 ya maji kila dakika 20 (Lita 1 kwa saa).
@@ -368,7 +391,7 @@ Kiwango cha Sasa: **$category (${utciVal.toStringAsFixed(1)}°C UTCI)**
     }
 
     if (language.code == 'fr') {
-      return '''💧 **Protocole Sécurité Chaleur pour ${role.label} ($cityName)**
+      return '''💧 **Protocole Sécurité Chaleur pour ${role.localizedLabel} ($cityName)**
 Indice Thermique Actuel: **$category (${utciVal.toStringAsFixed(1)}°C UTCI)**
 
 • **Hydratation:** Buvez **250ml d'eau toutes les 20 minutes** (1L par heure). Ajoutez une pincée d'électrolytes.
@@ -378,13 +401,23 @@ Indice Thermique Actuel: **$category (${utciVal.toStringAsFixed(1)}°C UTCI)**
     }
 
     if (language.code == 'es') {
-      return '''💧 **Plan de Seguridad Térmica para ${role.label} ($cityName)**
+      return '''💧 **Plan de Seguridad Térmica para ${role.localizedLabel} ($cityName)**
 Estrés Térmico: **$category (${utciVal.toStringAsFixed(1)}°C UTCI)**
 
 • **Hidratación:** Beba **250ml de agua cada 15-20 minutos** (1L por hora con sales minerales).
 • **Ciclo Trabajo-Sombra:** 20 min de esfuerzo / 40 min de descanso bajo sombra densa.
 • **Técnica de Alivio:** Paño húmedo en nuca y frente; retire casco al frenar.
 • **Alerta Roja:** Piel seca y caliente o mareos requieren auxilio urgente.''';
+    }
+
+    if (language.code == 'hi') {
+      return '''💧 **${role.localizedLabel} के लिए थर्मल सुरक्षा योजना ($cityName)**
+वर्तमान ताप सूचकांक: **$category (${utciVal.toStringAsFixed(1)}°C UTCI)**
+
+• **जलयोजन लक्ष्य:** हर **15-20 मिनट में एक गिलास पानी** पिएं (प्रति घंटे ~1 लीटर)। नींबू पानी या हल्का नमक मिलाएं।
+• **काम-आराम चक्र:** तेज धूप में **20 मिनट काम / 40 मिनट गहरी छाया में आराम** करें।
+• **शरीर को ठंडा रखें:** गर्दन और कलाई पर ठंडा गीला कपड़ा रखें।
+• **खतरे का संकेत:** चक्कर आना, पसीना रुकना या भ्रम होने पर तुरंत चिकित्सा सहायता लें।''';
     }
 
     final q = query.toLowerCase();
@@ -397,7 +430,7 @@ Estrés Térmico: **$category (${utciVal.toStringAsFixed(1)}°C UTCI)**
     }
 
     if (q.contains('hydration') || q.contains('water') || q.contains('drink')) {
-      return '''💧 **Hourly Hydration Protocol for ${role.label} ($cityName)**
+      return '''💧 **Hourly Hydration Protocol for ${role.localizedLabel} ($cityName)**
 Current Index: **$category (${utciVal.toStringAsFixed(1)}°C UTCI)**
 • **Volume Target:** Drink **250ml (1 glass) of water every 15–20 minutes** (~1.0 Liter/hr).
 • **Electrolytes:** Add a pinch of salt or lemon water during heavy sweating to prevent salt depletion.
@@ -405,7 +438,7 @@ Current Index: **$category (${utciVal.toStringAsFixed(1)}°C UTCI)**
     }
 
     // Default concise English
-    return '''💡 **Thermal Safety Action Plan for ${role.label}**
+    return '''💡 **Thermal Safety Action Plan for ${role.localizedLabel}**
 Current Ground Condition: **$category (${utciVal.toStringAsFixed(1)}°C UTCI)** in $cityName.
 
 • **Hydration Target:** Drink **250ml clean water every 15–20 minutes** (~1.0 Liter/hr). Avoid energy drinks.

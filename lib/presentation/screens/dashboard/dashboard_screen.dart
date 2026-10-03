@@ -16,7 +16,7 @@ class DashboardScreen extends GetView<DashboardController> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = context.isDark;
 
     return Scaffold(
       body: SafeArea(
@@ -239,7 +239,7 @@ class DashboardScreen extends GetView<DashboardController> {
                     Icon(role.icon, color: AppColors.accent, size: 15),
                     const SizedBox(width: 5),
                     Text(
-                      role.label,
+                      role.localizedLabel,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 11.5,
@@ -369,9 +369,9 @@ class DashboardScreen extends GetView<DashboardController> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'THERMAL COMFORT RADAR',
-                    style: TextStyle(
+                  Text(
+                    'radar_title'.tr,
+                    style: const TextStyle(
                       fontSize: 10.5,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1.0,
@@ -380,7 +380,7 @@ class DashboardScreen extends GetView<DashboardController> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Universal Thermal Climate Index (UTCI)',
+                    'radar_subtitle'.tr,
                     style: TextStyle(
                       fontSize: 11,
                       color: isDark ? Colors.white54 : Colors.black45,
@@ -414,7 +414,7 @@ class DashboardScreen extends GetView<DashboardController> {
                         ),
                         const SizedBox(width: 5),
                         Text(
-                          isSpeaking ? 'Stop' : 'Voice (${lang.code.toUpperCase()})',
+                          isSpeaking ? 'stop'.tr : '${'voice_label'.tr} (${lang.code.toUpperCase()})',
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
@@ -439,7 +439,7 @@ class DashboardScreen extends GetView<DashboardController> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Combines temperature, solar radiation, humidity & wind airflow',
+            'radar_desc'.tr,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 11,
@@ -497,7 +497,7 @@ class DashboardScreen extends GetView<DashboardController> {
                 child: Row(
                   children: [
                     Text(
-                      'Live Hazard Advisory',
+                      'live_hazard_advisory'.tr,
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
@@ -527,7 +527,7 @@ class DashboardScreen extends GetView<DashboardController> {
                 visualDensity: VisualDensity.compact,
                 icon: const Icon(Icons.volume_up, size: 18),
                 color: color,
-                tooltip: 'Listen in ${lang.nativeName}',
+                tooltip: 'listen_in_lang'.trParams({'lang': lang.nativeName}),
                 onPressed: controller.readAlertAloud,
               ),
             ],
@@ -554,19 +554,19 @@ class DashboardScreen extends GetView<DashboardController> {
             children: [
               _actionChip(
                 icon: Icons.timer_outlined,
-                label: utci >= 38 ? '15m Work / 45m Rest' : '45m Work / 15m Rest',
+                label: utci >= 38 ? 'chip_rest_extreme'.tr : 'chip_rest_normal'.tr,
                 color: color,
                 isDark: isDark,
               ),
               _actionChip(
                 icon: Icons.water_drop_outlined,
-                label: utci >= 38 ? '1.0L / hour' : '500–750ml / hour',
+                label: utci >= 38 ? 'chip_water_extreme'.tr : 'chip_water_normal'.tr,
                 color: color,
                 isDark: isDark,
               ),
               _actionChip(
                 icon: Icons.wb_shade_outlined,
-                label: 'Deep Shade Mandatory',
+                label: 'deep_shade_mandatory'.tr,
                 color: color,
                 isDark: isDark,
               ),
@@ -640,14 +640,14 @@ class DashboardScreen extends GetView<DashboardController> {
                     child: const Icon(Icons.auto_awesome, size: 16, color: AppColors.accent),
                   ),
                   const SizedBox(width: 8),
-                  const Text(
-                    'AI Safety Plan',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5),
+                  Text(
+                    'ai_safety_plan'.tr,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5),
                   ),
                 ],
               ),
               Text(
-                'Instant Field Protocol',
+                'instant_field_protocol'.tr,
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
@@ -668,7 +668,7 @@ class DashboardScreen extends GetView<DashboardController> {
             children: [
               Expanded(
                 child: _adviceTile(
-                  title: 'Work / Rest',
+                  title: 'work_rest_label'.tr,
                   value: advice.workRestCycle,
                   icon: Icons.timer_outlined,
                   color: Colors.amber,
@@ -678,7 +678,7 @@ class DashboardScreen extends GetView<DashboardController> {
               const SizedBox(width: 8),
               Expanded(
                 child: _adviceTile(
-                  title: 'Hydration',
+                  title: 'hydration_label'.tr,
                   value: advice.hydrationGoal,
                   icon: Icons.water_drop_outlined,
                   color: Colors.blueAccent,
@@ -692,7 +692,7 @@ class DashboardScreen extends GetView<DashboardController> {
             children: [
               Expanded(
                 child: _adviceTile(
-                  title: 'Field Action',
+                  title: 'field_action_label'.tr,
                   value: advice.profileAction,
                   icon: Icons.shield_outlined,
                   color: Colors.tealAccent,
@@ -702,7 +702,7 @@ class DashboardScreen extends GetView<DashboardController> {
               const SizedBox(width: 8),
               Expanded(
                 child: _adviceTile(
-                  title: 'Cooling Method',
+                  title: 'cooling_method_label'.tr,
                   value: advice.coolingMethod,
                   icon: Icons.ac_unit_outlined,
                   color: AppColors.accent,
@@ -773,7 +773,7 @@ class DashboardScreen extends GetView<DashboardController> {
       crossAxisSpacing: 10,
       children: [
         MetricCard(
-          label: 'Air Temperature',
+          label: 'air_temp'.tr,
           value: weather.airTemperature.toStringAsFixed(1),
           unit: '°C',
           icon: Icons.thermostat_outlined,
@@ -781,28 +781,30 @@ class DashboardScreen extends GetView<DashboardController> {
           subtitle: weather.weatherDescription,
         ),
         MetricCard(
-          label: 'Relative Humidity',
+          label: 'rel_humidity'.tr,
           value: weather.relativeHumidity.toStringAsFixed(0),
           unit: '%',
           icon: Icons.water_drop_outlined,
           iconColor: Colors.blueAccent,
-          subtitle: weather.relativeHumidity > 60 ? 'High sweat barrier' : 'Normal sweat rate',
+          subtitle: weather.relativeHumidity > 60
+              ? 'high_sweat_barrier'.tr
+              : 'normal_sweat_rate'.tr,
         ),
         MetricCard(
-          label: 'Wind Speed',
+          label: 'wind_speed'.tr,
           value: weather.windSpeedKmh.toStringAsFixed(1),
           unit: 'km/h',
           icon: Icons.air,
           iconColor: Colors.tealAccent,
-          subtitle: '${weather.windSpeedMps.toStringAsFixed(1)} m/s airflow',
+          subtitle: '${weather.windSpeedMps.toStringAsFixed(1)} m/s ${'airflow_suffix'.tr}',
         ),
         MetricCard(
-          label: 'Apparent Heat',
+          label: 'apparent_heat'.tr,
           value: weather.apparentTemperature.toStringAsFixed(1),
           unit: '°C',
           icon: Icons.wb_sunny_outlined,
           iconColor: AppColors.accent,
-          subtitle: 'Direct solar radiance',
+          subtitle: 'direct_solar_radiance'.tr,
         ),
       ],
     );
@@ -825,16 +827,16 @@ class DashboardScreen extends GetView<DashboardController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '24-Hour Thermal Progression',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+                  'hourly_progression'.tr,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
                 ),
                 Text(
-                  'Hourly UTCI Curve',
-                  style: TextStyle(
+                  'hourly_curve'.tr,
+                  style: const TextStyle(
                     fontSize: 11,
                     color: AppColors.accent,
                     fontWeight: FontWeight.w600,
@@ -926,7 +928,7 @@ class DashboardScreen extends GetView<DashboardController> {
   }
 
   void _openLanguageSelector(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = context.isDark;
     const languages = NativeLanguageService.supportedLanguages;
 
     showModalBottomSheet(
@@ -958,14 +960,14 @@ class DashboardScreen extends GetView<DashboardController> {
                 ),
               ),
               const SizedBox(height: 14),
-              const Text(
-                'Choose Alert & Voice Language',
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+              Text(
+                'choose_language'.tr,
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 2),
-              const Text(
-                'Warnings, AI advice, and voice readings will adapt to this tongue.',
-                style: TextStyle(fontSize: 11.5, color: Colors.grey),
+              Text(
+                'choose_language_desc'.tr,
+                style: const TextStyle(fontSize: 11.5, color: Colors.grey),
               ),
               const SizedBox(height: 14),
               Flexible(
@@ -1016,7 +1018,7 @@ class DashboardScreen extends GetView<DashboardController> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) {
-        final isDark = Theme.of(sheetContext).brightness == Brightness.dark;
+        final isDark = sheetContext.isDark;
         return Container(
           constraints: BoxConstraints(
             maxHeight: MediaQuery.of(sheetContext).size.height * 0.75,
@@ -1041,14 +1043,14 @@ class DashboardScreen extends GetView<DashboardController> {
                 ),
               ),
               const SizedBox(height: 14),
-              const Text(
-                'Switch Vulnerability Profile',
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+              Text(
+                'switch_profile'.tr,
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 2),
-              const Text(
-                'Calibrates work-rest cycles and hydration targets to your field realities.',
-                style: TextStyle(fontSize: 11.5, color: Colors.grey),
+              Text(
+                'switch_profile_desc'.tr,
+                style: const TextStyle(fontSize: 11.5, color: Colors.grey),
               ),
               const SizedBox(height: 14),
               Flexible(
@@ -1065,13 +1067,13 @@ class DashboardScreen extends GetView<DashboardController> {
                         color: isSelected ? AppColors.accent : (isDark ? Colors.white70 : Colors.black87),
                       ),
                       title: Text(
-                        role.label,
+                        role.localizedLabel,
                         style: TextStyle(
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                           color: isSelected ? AppColors.accent : null,
                         ),
                       ),
-                      subtitle: Text(role.description, style: const TextStyle(fontSize: 11)),
+                      subtitle: Text(role.localizedDescription, style: const TextStyle(fontSize: 11)),
                       trailing: isSelected
                           ? const Icon(Icons.check_circle, color: AppColors.accent, size: 20)
                           : null,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../core/theme/app_colors.dart';
 import '../../services/geofencing_service.dart';
 
@@ -14,7 +15,7 @@ class GeofenceDetailDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = context.isDark;
     final isDanger = status.isInsideDangerZone;
     final statusColor = isDanger ? AppColors.extremeStress : const Color(0xFF10B981);
 
@@ -98,7 +99,7 @@ class GeofenceDetailDialog extends StatelessWidget {
               children: [
                 Expanded(
                   child: _infoBox(
-                    label: 'GPS Coordinates',
+                    label: 'geofence_gps_coordinates'.tr,
                     value: '${status.userLatitude.toStringAsFixed(2)}°, ${status.userLongitude.toStringAsFixed(2)}°',
                     icon: Icons.my_location,
                     isDark: isDark,
@@ -107,8 +108,8 @@ class GeofenceDetailDialog extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: _infoBox(
-                    label: 'Geofence Radius',
-                    value: '${status.radiusKm.toInt()} km Perimeter',
+                    label: 'geofence_radius'.tr,
+                    value: '${status.radiusKm.toInt()} km ${'geofence_perimeter_suffix'.tr}',
                     icon: Icons.radar,
                     isDark: isDark,
                   ),
@@ -120,7 +121,7 @@ class GeofenceDetailDialog extends StatelessWidget {
               children: [
                 Expanded(
                   child: _infoBox(
-                    label: 'Distance to Epicenter',
+                    label: 'geofence_distance_center'.tr,
                     value: '${status.distanceToCenterKm.toStringAsFixed(1)} km',
                     icon: Icons.navigation_outlined,
                     isDark: isDark,
@@ -129,7 +130,7 @@ class GeofenceDetailDialog extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: _infoBox(
-                    label: 'Danger Threshold',
+                    label: 'geofence_danger_threshold'.tr,
                     value: '${status.thresholdUtci.toStringAsFixed(0)}°C UTCI',
                     icon: Icons.warning_amber_rounded,
                     isDark: isDark,
@@ -152,9 +153,9 @@ class GeofenceDetailDialog extends StatelessWidget {
                 onRefreshLocation();
               },
               icon: const Icon(Icons.refresh, size: 18),
-              label: const Text(
-                'Re-Scan Location & Perimeter',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              label: Text(
+                'geofence_rescan_btn'.tr,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
               ),
             ),
           ],

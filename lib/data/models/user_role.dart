@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 enum UserRole {
   outdoorWorker(
@@ -39,6 +40,12 @@ enum UserRole {
   final IconData icon;
 
   const UserRole(this.backendKey, this.label, this.description, this.icon);
+
+  /// Returns reactive localized role name using GetX .tr
+  String get localizedLabel => 'role_$backendKey'.tr;
+
+  /// Returns reactive localized role description using GetX .tr
+  String get localizedDescription => 'role_${backendKey}_desc'.tr;
 
   static UserRole fromBackendKey(String key) =>
       UserRole.values.firstWhere(

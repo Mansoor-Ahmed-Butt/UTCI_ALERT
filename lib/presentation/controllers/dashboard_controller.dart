@@ -69,10 +69,7 @@ class DashboardController extends GetxController {
     }
 
     // Auto-detect language for initial city
-    _langService.autoUpdateForLocation(
-      selectedCity.value.country,
-      selectedCity.value.countryCode,
-    );
+    _langService.autoUpdateForCity(selectedCity.value, force: true);
 
     status.value = _statusRepository.cachedStatus;
     if (status.value != null) {
@@ -136,7 +133,8 @@ class DashboardController extends GetxController {
 
   void selectCity(CityLocation city) {
     selectedCity.value = city;
-    _langService.autoUpdateForLocation(city.country, city.countryCode);
+    _langService.autoUpdateForCity(city, force: true);
+    _updateAdvice();
     refreshData();
   }
 
@@ -158,7 +156,8 @@ class DashboardController extends GetxController {
         );
 
         selectedCity.value = realCity;
-        _langService.autoUpdateForLocation(pos.country, pos.countryCode);
+        _langService.autoUpdateForCity(realCity, force: true);
+        _updateAdvice();
         await refreshData();
       }
     } catch (e) {

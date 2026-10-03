@@ -28,9 +28,9 @@ class AuthScreen extends GetView<AuthController> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const SizedBox(height: 16),
-                  const AppLogoHeader(
-                    title: 'UTCI Alert',
-                    subtitle: 'Know the heat before it knows you',
+                  AppLogoHeader(
+                    title: 'app_name'.tr,
+                    subtitle: 'app_subtitle'.tr,
                   ),
                   const SizedBox(height: 30),
                   Align(
@@ -39,14 +39,14 @@ class AuthScreen extends GetView<AuthController> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Select your profile',
+                          'select_profile'.tr,
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Alerts, rest ratios, and AI tips adapt dynamically to your daily environment',
+                          'select_profile_desc'.tr,
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: Colors.grey,
                               ),
@@ -56,16 +56,18 @@ class AuthScreen extends GetView<AuthController> {
                   ),
                   const SizedBox(height: 14),
                   Obx(
-                    () => Column(
-                      children: UserRole.values
-                          .map(
-                            (role) => RoleSelectionCard(
-                              role: role,
-                              isSelected: controller.selectedRole.value == role,
-                              onTap: () => controller.selectRole(role),
-                            ),
-                          )
-                          .toList(),
+                    () => ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: UserRole.values.length,
+                      itemBuilder: (context, index) {
+                        final role = UserRole.values[index];
+                        return RoleSelectionCard(
+                          role: role,
+                          isSelected: controller.selectedRole.value == role,
+                          onTap: () => controller.selectRole(role),
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -84,7 +86,7 @@ class AuthScreen extends GetView<AuthController> {
                   const SizedBox(height: 10),
                   Obx(
                     () => PrimaryButton(
-                      label: 'Enter Thermal Dashboard',
+                      label: 'enter_dashboard'.tr,
                       icon: Icons.dashboard_outlined,
                       isLoading: false,
                       onPressed: controller.selectedRole.value == null
@@ -105,9 +107,9 @@ class AuthScreen extends GetView<AuthController> {
                         ),
                       ),
                       icon: const Icon(Icons.login, size: 20, color: AppColors.accent),
-                      label: const Text(
-                        'Sign in with Google (Firebase)',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      label: Text(
+                        'sign_in_google'.tr,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       onPressed: controller.selectedRole.value == null ||
                               controller.isSigningIn.value

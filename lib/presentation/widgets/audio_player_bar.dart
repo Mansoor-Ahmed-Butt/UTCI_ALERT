@@ -13,7 +13,7 @@ class AudioPlayerBar extends StatelessWidget {
     return Obx(() {
       if (!tts.isSpeaking.value) return const SizedBox.shrink();
 
-      final isDark = Theme.of(context).brightness == Brightness.dark;
+      final isDark = context.isDark;
 
       return Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -51,9 +51,9 @@ class AudioPlayerBar extends StatelessWidget {
                           color: AppColors.accent,
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: const Text(
-                          'VOICE READOUT',
-                          style: TextStyle(
+                        child: Text(
+                          'voice_readout'.tr,
+                          style: const TextStyle(
                             fontSize: 9,
                             fontWeight: FontWeight.bold,
                             color: Colors.black87,
@@ -62,7 +62,7 @@ class AudioPlayerBar extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'On-Device Audio',
+                        'on_device_audio'.tr,
                         style: TextStyle(
                           fontSize: 11,
                           color: isDark ? Colors.white60 : Colors.black54,
@@ -85,7 +85,7 @@ class AudioPlayerBar extends StatelessWidget {
             ),
             IconButton(
               icon: const Icon(Icons.stop_circle, color: AppColors.accent, size: 28),
-              tooltip: 'Stop speaking',
+              tooltip: 'stop_speaking'.tr,
               onPressed: tts.stop,
             ),
           ],

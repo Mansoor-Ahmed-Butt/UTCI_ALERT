@@ -12,6 +12,9 @@ dependencies:
 
   # State management / DI / routing
   get: ^4.6.6
+  #Utils
+  flutter_native_splash: ^2.4.6
+  flutter_launcher_icons: ^0.14.4
 
   # Auth
   google_sign_in: ^6.2.1
@@ -50,3 +53,29 @@ flutter:
   uses-material-design: true
   assets:
     - .env
+    - assets/icon/
+
+  # App icon configuration (flutter_launcher_icons)
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/app_icon.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "assets/icon/app_icon_background.png"
+  adaptive_icon_foreground: "assets/icon/app_icon_foreground.png"
+  remove_alpha_ios: true
+ 
+#  Splash screen config (flutter_native_splash) 
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: "assets/icon/splash_icon.png"
+  color_dark: "#1A1A1A"
+  image_dark: "assets/icon/splash_icon_dark.png"
+ 
+  android_12:
+    image: "assets/icon/splash_icon.png"
+    icon_background_color: "#FFFFFF"
+    image_dark: "assets/icon/splash_icon_dark.png"
+    icon_background_color_dark: "#1A1A1A"
+ 
+  web: false

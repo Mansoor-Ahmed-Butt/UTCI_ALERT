@@ -10,7 +10,7 @@ class GuidanceScreen extends GetView<GuidanceController> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = context.isDark;
     final dashboard = Get.find<DashboardController>();
 
     return Scaffold(
@@ -18,13 +18,13 @@ class GuidanceScreen extends GetView<GuidanceController> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Protective Toolkit',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Text(
+              'guidance_title'.tr,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             Obx(
               () => Text(
-                'Personalized for ${dashboard.activeRole.value.label}',
+                '${'guidance_for'.tr} ${dashboard.activeRole.value.localizedLabel}',
                 style: TextStyle(
                   fontSize: 12,
                   color: isDark ? Colors.white60 : Colors.black54,
@@ -117,19 +117,19 @@ class GuidanceScreen extends GetView<GuidanceController> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.water_drop, color: Colors.blueAccent, size: 22),
-                    SizedBox(width: 8),
+                    const Icon(Icons.water_drop, color: Colors.blueAccent, size: 22),
+                    const SizedBox(width: 8),
                     Text(
-                      'Hydration Guard',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      'hydration_guard'.tr,
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
                 TextButton(
                   onPressed: controller.resetWater,
-                  child: const Text('Reset', style: TextStyle(fontSize: 12)),
+                  child: Text('hydration_reset'.tr, style: const TextStyle(fontSize: 12)),
                 ),
               ],
             ),
@@ -149,7 +149,7 @@ class GuidanceScreen extends GetView<GuidanceController> {
                     children: [
                       TextSpan(text: '${(consumed / 1000).toStringAsFixed(2)}L '),
                       TextSpan(
-                        text: '/ ${(target / 1000).toStringAsFixed(1)}L goal',
+                        text: '/ ${(target / 1000).toStringAsFixed(1)}L ${'goal_suffix'.tr}',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
@@ -185,7 +185,7 @@ class GuidanceScreen extends GetView<GuidanceController> {
                 Expanded(
                   child: OutlinedButton.icon(
                     icon: const Icon(Icons.add, size: 16),
-                    label: const Text('+250ml Glass'),
+                    label: Text('add_glass'.tr),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       shape: RoundedRectangleBorder(
@@ -199,7 +199,7 @@ class GuidanceScreen extends GetView<GuidanceController> {
                 Expanded(
                   child: FilledButton.icon(
                     icon: const Icon(Icons.local_drink, size: 16),
-                    label: const Text('+500ml Bottle'),
+                    label: Text('add_bottle'.tr),
                     style: FilledButton.styleFrom(
                       backgroundColor: Colors.blueAccent,
                       padding: const EdgeInsets.symmetric(vertical: 10),
@@ -237,25 +237,25 @@ class GuidanceScreen extends GetView<GuidanceController> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.checklist, color: AppColors.accent, size: 22),
-                    SizedBox(width: 8),
+                    const Icon(Icons.checklist, color: AppColors.accent, size: 22),
+                    const SizedBox(width: 8),
                     Text(
-                      'Shift Heat Preparedness',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      'shift_checklist'.tr,
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
                 InkWell(
                   onTap: controller.readChecklistAloud,
-                  child: const Row(
+                  child: Row(
                     children: [
-                      Icon(Icons.volume_up, size: 16, color: AppColors.accent),
-                      SizedBox(width: 4),
+                      const Icon(Icons.volume_up, size: 16, color: AppColors.accent),
+                      const SizedBox(width: 4),
                       Text(
-                        'Listen',
-                        style: TextStyle(
+                        'listen'.tr,
+                        style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: AppColors.accent,
@@ -267,47 +267,57 @@ class GuidanceScreen extends GetView<GuidanceController> {
               ],
             ),
             const SizedBox(height: 12),
-            ...list.map(
-              (item) => Obx(() {
-                final checked = item.isChecked.value;
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  decoration: BoxDecoration(
-                    color: checked
-                        ? AppColors.noStress.withValues(alpha: 0.1)
-                        : (isDark ? const Color(0xFF1F242F) : const Color(0xFFF7F8FA)),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: list.length,
+              itemBuilder: (context, index) {
+                final item = list[index];
+                return Obx(() {
+                  final checked = item.isChecked.value;
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    decoration: BoxDecoration(
                       color: checked
-                          ? AppColors.noStress.withValues(alpha: 0.4)
-                          : Colors.transparent,
-                    ),
-                  ),
-                  child: CheckboxListTile(
-                    value: checked,
-                    activeColor: AppColors.noStress,
-                    secondary: Icon(
-                      item.icon,
-                      color: checked ? AppColors.noStress : AppColors.accent,
-                    ),
-                    title: Text(
-                      item.title,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        decoration: checked ? TextDecoration.lineThrough : null,
+                          ? AppColors.noStress.withValues(alpha: 0.1)
+                          : (isDark ? const Color(0xFF1F242F) : const Color(0xFFF7F8FA)),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: checked
+                            ? AppColors.noStress.withValues(alpha: 0.4)
+                            : Colors.transparent,
                       ),
                     ),
-                    subtitle: Text(
-                      item.description,
-                      style: const TextStyle(fontSize: 11),
+                    child: CheckboxListTile(
+                      value: checked,
+                      activeColor: AppColors.noStress,
+                      secondary: Icon(
+                        item.icon,
+                        color: checked ? AppColors.noStress : AppColors.accent,
+                      ),
+                      title: Text(
+                        item.title,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          color: isDark ? Colors.white : Colors.black87,
+                          decoration: checked ? TextDecoration.lineThrough : null,
+                        ),
+                      ),
+                      subtitle: Text(
+                        item.description,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isDark ? Colors.white60 : Colors.black54,
+                        ),
+                      ),
+                      onChanged: (val) {
+                        item.isChecked.value = val ?? false;
+                      },
                     ),
-                    onChanged: (val) {
-                      item.isChecked.value = val ?? false;
-                    },
-                  ),
-                );
-              }),
+                  );
+                });
+              },
             ),
           ],
         ),
@@ -331,26 +341,26 @@ class GuidanceScreen extends GetView<GuidanceController> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
+              Row(
                 children: [
-                  Icon(Icons.medical_services_outlined,
+                  const Icon(Icons.medical_services_outlined,
                       color: AppColors.extremeStress, size: 22),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Text(
-                    'Heatstroke Emergency Triage',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    'emergency_triage'.tr,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
               InkWell(
                 onTap: controller.readFirstAidAloud,
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.volume_up, size: 16, color: AppColors.extremeStress),
-                    SizedBox(width: 4),
+                    const Icon(Icons.volume_up, size: 16, color: AppColors.extremeStress),
+                    const SizedBox(width: 4),
                     Text(
-                      'Listen',
-                      style: TextStyle(
+                      'listen'.tr,
+                      style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: AppColors.extremeStress,
@@ -373,25 +383,25 @@ class GuidanceScreen extends GetView<GuidanceController> {
                     border: Border.all(
                         color: AppColors.strongStress.withValues(alpha: 0.3)),
                   ),
-                  child: const Column(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Heat Exhaustion',
-                        style: TextStyle(
+                        'heat_exhaustion'.tr,
+                        style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: AppColors.strongStress,
                         ),
                       ),
-                      SizedBox(height: 4),
-                      Text('• Cool, pale clammy skin', style: TextStyle(fontSize: 11)),
-                      Text('• Heavy sweating', style: TextStyle(fontSize: 11)),
-                      Text('• Dizziness & nausea', style: TextStyle(fontSize: 11)),
-                      SizedBox(height: 6),
+                      const SizedBox(height: 4),
+                      Text('heat_exhaustion_s1'.tr, style: TextStyle(fontSize: 11, color: isDark ? Colors.white70 : Colors.black87)),
+                      Text('heat_exhaustion_s2'.tr, style: TextStyle(fontSize: 11, color: isDark ? Colors.white70 : Colors.black87)),
+                      Text('heat_exhaustion_s3'.tr, style: TextStyle(fontSize: 11, color: isDark ? Colors.white70 : Colors.black87)),
+                      const SizedBox(height: 6),
                       Text(
-                        'Action: Move to shade, loosen clothes, sip cool water.',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                        'heat_exhaustion_action'.tr,
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
                       ),
                     ],
                   ),
@@ -407,25 +417,25 @@ class GuidanceScreen extends GetView<GuidanceController> {
                     border: Border.all(
                         color: AppColors.extremeStress.withValues(alpha: 0.4)),
                   ),
-                  child: const Column(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Heat Stroke (CRITICAL)',
-                        style: TextStyle(
+                        'heatstroke_critical'.tr,
+                        style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: AppColors.extremeStress,
                         ),
                       ),
-                      SizedBox(height: 4),
-                      Text('• Core Temp > 40°C', style: TextStyle(fontSize: 11)),
-                      Text('• Hot, red skin (dry/sweaty)', style: TextStyle(fontSize: 11)),
-                      Text('• Confusion or delirium', style: TextStyle(fontSize: 11)),
-                      SizedBox(height: 6),
+                      const SizedBox(height: 4),
+                      Text('heatstroke_s1'.tr, style: TextStyle(fontSize: 11, color: isDark ? Colors.white70 : Colors.black87)),
+                      Text('heatstroke_s2'.tr, style: TextStyle(fontSize: 11, color: isDark ? Colors.white70 : Colors.black87)),
+                      Text('heatstroke_s3'.tr, style: TextStyle(fontSize: 11, color: isDark ? Colors.white70 : Colors.black87)),
+                      const SizedBox(height: 6),
                       Text(
-                        'Action: Call 112 / Emergency! Douse with cold water.',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                        'heatstroke_action'.tr,
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
                       ),
                     ],
                   ),
@@ -451,58 +461,84 @@ class GuidanceScreen extends GetView<GuidanceController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.roofing_outlined, color: AppColors.accent, size: 22),
-              SizedBox(width: 8),
+              const Icon(Icons.roofing_outlined, color: AppColors.accent, size: 22),
+              const SizedBox(width: 8),
               Text(
-                'Informal Settlement Cooling Hacks',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                'cooling_guide'.tr,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ],
           ),
           const SizedBox(height: 6),
           Text(
-            'Zero-electricity techniques co-designed for informal settlement realities',
+            'cooling_guide_desc'.tr,
             style: TextStyle(
               fontSize: 12,
               color: isDark ? Colors.white54 : Colors.black45,
             ),
           ),
           const SizedBox(height: 12),
-          _coolingTip(
-            title: 'Damp Jute Window Screen',
-            desc: 'Hang wet burlap across open windows; air passing through drops 3-5°C.',
-          ),
-          _coolingTip(
-            title: 'Whitewash Corrugated Tin Roofs',
-            desc: 'Calcium lime whitewash reflects 75% of solar heat, saving living areas from baking.',
-          ),
-          _coolingTip(
-            title: 'Night Thermal Flushing',
-            desc: 'Open opposing high vents after sunset to purge heat stored in walls and metal sheets.',
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _coolingTips.length,
+            itemBuilder: (itemContext, index) {
+              final tip = _coolingTips[index];
+              return _coolingTip(
+                itemContext,
+                title: tip['title']!.tr,
+                desc: tip['desc']!.tr,
+              );
+            },
           ),
         ],
       ),
     );
   }
 
-  Widget _coolingTip({required String title, required String desc}) {
+  static const List<Map<String, String>> _coolingTips = [
+    {
+      'title': 'tip_jute_title',
+      'desc': 'tip_jute_desc',
+    },
+    {
+      'title': 'tip_whitewash_title',
+      'desc': 'tip_whitewash_desc',
+    },
+    {
+      'title': 'tip_flushing_title',
+      'desc': 'tip_flushing_desc',
+    },
+  ];
+
+  Widget _coolingTip(BuildContext context,
+      {required String title, required String desc}) {
+    final isDark = context.isDark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.check_circle_outline, color: AppColors.accent, size: 16),
+          const Icon(Icons.check_circle_outline,
+              color: AppColors.accent, size: 16),
           const SizedBox(width: 8),
           Expanded(
-            child: RichText(
-              text: TextSpan(
-                style: const TextStyle(fontSize: 12, height: 1.35),
+            child: Text.rich(
+              TextSpan(
+                style: TextStyle(
+                  fontSize: 12,
+                  height: 1.35,
+                  color: isDark ? Colors.white70 : Colors.black87,
+                ),
                 children: [
                   TextSpan(
                     text: '$title: ',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
                   ),
                   TextSpan(text: desc),
                 ],

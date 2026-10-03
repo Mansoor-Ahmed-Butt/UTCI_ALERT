@@ -31,7 +31,7 @@ class MainNavScreen extends GetView<MainNavController> {
   }
 
   Widget _buildMobileScaffold(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = context.isDark;
 
     return Obx(() {
       final index = controller.currentIndex.value;
@@ -54,32 +54,32 @@ class MainNavScreen extends GetView<MainNavController> {
           selectedIndex: index,
           onDestinationSelected: controller.changeTab,
           backgroundColor: isDark ? AppColors.darkMode : Colors.white,
-          destinations: const [
+          destinations: [
             NavigationDestination(
-              icon: Icon(Icons.radar_outlined),
-              selectedIcon: Icon(Icons.radar, color: AppColors.accent),
-              label: 'Radar',
+              icon: const Icon(Icons.radar_outlined),
+              selectedIcon: const Icon(Icons.radar, color: AppColors.accent),
+              label: 'nav_radar'.tr,
             ),
             NavigationDestination(
-              icon: Icon(Icons.timeline_outlined),
-              selectedIcon: Icon(Icons.timeline, color: AppColors.accent),
-              label: 'Forecast',
+              icon: const Icon(Icons.timeline_outlined),
+              selectedIcon: const Icon(Icons.timeline, color: AppColors.accent),
+              label: 'nav_forecast'.tr,
             ),
             NavigationDestination(
-              icon: Icon(Icons.psychology_outlined),
-              selectedIcon: Icon(Icons.psychology, color: AppColors.accent),
-              label: 'AI Advisor',
+              icon: const Icon(Icons.psychology_outlined),
+              selectedIcon: const Icon(Icons.psychology, color: AppColors.accent),
+              label: 'nav_ai'.tr,
             ),
             NavigationDestination(
-              icon: Icon(Icons.health_and_safety_outlined),
+              icon: const Icon(Icons.health_and_safety_outlined),
               selectedIcon:
-                  Icon(Icons.health_and_safety, color: AppColors.accent),
-              label: 'Toolkit',
+                  const Icon(Icons.health_and_safety, color: AppColors.accent),
+              label: 'nav_toolkit'.tr,
             ),
             NavigationDestination(
-              icon: Icon(Icons.tune_outlined),
-              selectedIcon: Icon(Icons.tune, color: AppColors.accent),
-              label: 'Settings',
+              icon: const Icon(Icons.tune_outlined),
+              selectedIcon: const Icon(Icons.tune, color: AppColors.accent),
+              label: 'nav_settings'.tr,
             ),
           ],
         ),
@@ -88,7 +88,7 @@ class MainNavScreen extends GetView<MainNavController> {
   }
 
   Widget _buildTabletScaffold(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = context.isDark;
 
     return Obx(() {
       final index = controller.currentIndex.value;
@@ -97,54 +97,98 @@ class MainNavScreen extends GetView<MainNavController> {
         body: SafeArea(
           child: Row(
             children: [
-              NavigationRail(
-                selectedIndex: index,
-                onDestinationSelected: controller.changeTab,
-                labelType: NavigationRailLabelType.all,
-                backgroundColor: isDark ? AppColors.darkMode : Colors.white,
-                indicatorColor:
-                    isDark ? AppColors.accentDarkMuted : AppColors.accentMuted,
-                leading: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: AppColors.accent,
-                      borderRadius: BorderRadius.circular(14),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isCompact = constraints.maxHeight < 480;
+
+                  return SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints:
+                          BoxConstraints(minHeight: constraints.maxHeight),
+                      child: IntrinsicHeight(
+                        child: NavigationRail(
+                          selectedIndex: index,
+                          onDestinationSelected: controller.changeTab,
+                          labelType: NavigationRailLabelType.all,
+                          backgroundColor:
+                              isDark ? AppColors.darkMode : Colors.white,
+                          indicatorColor: isDark
+                              ? AppColors.accentDarkMuted
+                              : AppColors.accentMuted,
+                          minWidth: isCompact ? 64 : 72,
+                          groupAlignment: -1.0,
+                          selectedLabelTextStyle: TextStyle(
+                            fontSize: isCompact ? 10 : 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.accent,
+                          ),
+                          unselectedLabelTextStyle: TextStyle(
+                            fontSize: isCompact ? 10 : 12,
+                            color: isDark ? Colors.white60 : Colors.black54,
+                          ),
+                          selectedIconTheme: IconThemeData(
+                            size: isCompact ? 20 : 24,
+                            color: AppColors.accent,
+                          ),
+                          unselectedIconTheme: IconThemeData(
+                            size: isCompact ? 20 : 24,
+                            color: isDark ? Colors.white70 : Colors.black54,
+                          ),
+                          leading: Padding(
+                            padding: EdgeInsets.symmetric(
+                              vertical: isCompact ? 6 : 14,
+                            ),
+                            child: Container(
+                              padding: EdgeInsets.all(isCompact ? 6 : 9),
+                              decoration: BoxDecoration(
+                                color: AppColors.accent,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Icon(
+                                Icons.thermostat,
+                                color: Colors.black87,
+                                size: isCompact ? 18 : 22,
+                              ),
+                            ),
+                          ),
+                          destinations: [
+                            NavigationRailDestination(
+                              icon: const Icon(Icons.radar_outlined),
+                              selectedIcon: const Icon(Icons.radar,
+                                  color: AppColors.accent),
+                              label: Text('nav_radar'.tr),
+                            ),
+                            NavigationRailDestination(
+                              icon: const Icon(Icons.timeline_outlined),
+                              selectedIcon: const Icon(Icons.timeline,
+                                  color: AppColors.accent),
+                              label: Text('nav_forecast'.tr),
+                            ),
+                            NavigationRailDestination(
+                              icon: const Icon(Icons.psychology_outlined),
+                              selectedIcon: const Icon(Icons.psychology,
+                                  color: AppColors.accent),
+                              label: Text('nav_ai_copilot'.tr),
+                            ),
+                            NavigationRailDestination(
+                              icon:
+                                  const Icon(Icons.health_and_safety_outlined),
+                              selectedIcon: const Icon(Icons.health_and_safety,
+                                  color: AppColors.accent),
+                              label: Text('nav_toolkit'.tr),
+                            ),
+                            NavigationRailDestination(
+                              icon: const Icon(Icons.tune_outlined),
+                              selectedIcon: const Icon(Icons.tune,
+                                  color: AppColors.accent),
+                              label: Text('nav_settings'.tr),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    child: const Icon(Icons.thermostat,
-                        color: Colors.black87, size: 24),
-                  ),
-                ),
-                destinations: const [
-                  NavigationRailDestination(
-                    icon: Icon(Icons.radar_outlined),
-                    selectedIcon: Icon(Icons.radar, color: AppColors.accent),
-                    label: Text('Radar'),
-                  ),
-                  NavigationRailDestination(
-                    icon: Icon(Icons.timeline_outlined),
-                    selectedIcon: Icon(Icons.timeline, color: AppColors.accent),
-                    label: Text('Forecast'),
-                  ),
-                  NavigationRailDestination(
-                    icon: Icon(Icons.psychology_outlined),
-                    selectedIcon:
-                        Icon(Icons.psychology, color: AppColors.accent),
-                    label: Text('AI Copilot'),
-                  ),
-                  NavigationRailDestination(
-                    icon: Icon(Icons.health_and_safety_outlined),
-                    selectedIcon:
-                        Icon(Icons.health_and_safety, color: AppColors.accent),
-                    label: Text('Toolkit'),
-                  ),
-                  NavigationRailDestination(
-                    icon: Icon(Icons.tune_outlined),
-                    selectedIcon: Icon(Icons.tune, color: AppColors.accent),
-                    label: Text('Settings'),
-                  ),
-                ],
+                  );
+                },
               ),
               const VerticalDivider(thickness: 1, width: 1),
               Expanded(

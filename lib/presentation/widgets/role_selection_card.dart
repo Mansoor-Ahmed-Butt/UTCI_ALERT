@@ -16,7 +16,7 @@ class RoleSelectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = context.isDark;
     final selectedBg = isDark
         ? AppColors.accent.withValues(alpha: 0.18)
         : AppColors.accentMuted;
@@ -60,7 +60,7 @@ class RoleSelectionCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      role.label,
+                      role.localizedLabel,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: isSelected ? AppColors.accent : null,
@@ -68,7 +68,7 @@ class RoleSelectionCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      role.description,
+                      role.localizedDescription,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             fontSize: 12,
                             color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),

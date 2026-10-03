@@ -3,6 +3,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
+import 'core/i18n/app_translations.dart';
 import 'core/theme/app_theme.dart';
 import 'data/datasources/hive_local_datasource.dart';
 import 'firebase_options.dart';
@@ -47,6 +48,9 @@ class UtciAlertApp extends StatelessWidget {
       () => GetMaterialApp(
         title: 'UTCI Alert',
         debugShowCheckedModeBanner: false,
+        translations: AppTranslations(),
+        locale: const Locale('en', 'US'),
+        fallbackLocale: const Locale('en', 'US'),
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,
         themeMode: themeController.themeMode.value,

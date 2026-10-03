@@ -1,4 +1,5 @@
 import 'package:hive/hive.dart';
+import '../../core/utils/utci_calculator.dart';
 
 part 'utci_status_model.g.dart';
 
@@ -23,12 +24,5 @@ class UtciStatusModel extends HiveObject {
     this.suggestion,
   });
 
-  String get categoryLabel => switch (category) {
-        'no_stress' => 'No Heat Stress',
-        'moderate' => 'Moderate Heat Stress',
-        'strong' => 'Strong Heat Stress',
-        'very_strong' => 'Very Strong Heat Stress',
-        'extreme' => 'Extreme Heat Stress',
-        _ => 'Unknown',
-      };
+  String get categoryLabel => UtciCalculator.getCategoryLabel(category);
 }

@@ -1,23 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../data/models/user_role.dart';
+import '../../services/native_language_service.dart';
 import '../../services/tts_service.dart';
 import 'dashboard_controller.dart';
 
 class ChecklistItem {
   final String id;
-  final String title;
-  final String description;
+  final String titleKey;
+  final String descriptionKey;
   final IconData icon;
   final RxBool isChecked;
 
   ChecklistItem({
     required this.id,
-    required this.title,
-    required this.description,
+    required this.titleKey,
+    required this.descriptionKey,
     required this.icon,
     bool initialChecked = false,
   }) : isChecked = initialChecked.obs;
+
+  /// Dynamic getters — re-evaluated every rebuild so locale changes propagate.
+  String get title => titleKey.tr;
+  String get description => descriptionKey.tr;
 }
 
 class GuidanceController extends GetxController {
@@ -26,6 +31,7 @@ class GuidanceController extends GetxController {
   GuidanceController({required TtsService tts}) : _tts = tts;
 
   DashboardController get _dashboard => Get.find<DashboardController>();
+  NativeLanguageService get _langService => Get.find<NativeLanguageService>();
 
   // Hydration Tracker State
   final RxInt targetMilliliters = 3000.obs;
@@ -42,6 +48,8 @@ class GuidanceController extends GetxController {
     super.onInit();
     _loadChecklistForRole(_dashboard.activeRole.value);
     ever(_dashboard.activeRole, _loadChecklistForRole);
+    // Reload when language changes so titles/descriptions re-bind correctly.
+    ever(_langService.activeLanguage, (_) => _loadChecklistForRole(_dashboard.activeRole.value));
   }
 
   void _loadChecklistForRole(UserRole role) {
@@ -50,26 +58,26 @@ class GuidanceController extends GetxController {
         currentChecklist.assignAll([
           ChecklistItem(
             id: 'c1',
-            title: '2.5L Clean Water Jug Prepared',
-            description: 'Have cool water accessible within 2 minutes of your work area.',
+            titleKey: 'check_ow_c1_title',
+            descriptionKey: 'check_ow_c1_desc',
             icon: Icons.water_drop_outlined,
           ),
           ChecklistItem(
             id: 'c2',
-            title: 'Wide-Brim Hat or Neck Shade',
-            description: 'Drape a damp cloth under your hardhat or wear a wide brim.',
+            titleKey: 'check_ow_c2_title',
+            descriptionKey: 'check_ow_c2_desc',
             icon: Icons.shield_outlined,
           ),
           ChecklistItem(
             id: 'c3',
-            title: 'Shade Canopy Identified',
-            description: 'Locate a covered area with air movement for your 15-min hourly rest.',
+            titleKey: 'check_ow_c3_title',
+            descriptionKey: 'check_ow_c3_desc',
             icon: Icons.beach_access_outlined,
           ),
           ChecklistItem(
             id: 'c4',
-            title: 'Buddy System Active',
-            description: 'Agree with a coworker to monitor each other for slurred speech or dizziness.',
+            titleKey: 'check_ow_c4_title',
+            descriptionKey: 'check_ow_c4_desc',
             icon: Icons.group_outlined,
           ),
         ]);
@@ -79,26 +87,26 @@ class GuidanceController extends GetxController {
         currentChecklist.assignAll([
           ChecklistItem(
             id: 'r1',
-            title: 'Visor Clean & Vent Opened',
-            description: 'Keep face visor cracked 1-notch to prevent 48°C helmet heat pocket.',
+            titleKey: 'check_dr_r1_title',
+            descriptionKey: 'check_dr_r1_desc',
             icon: Icons.sports_motorsports_outlined,
           ),
           ChecklistItem(
             id: 'r2',
-            title: 'Wet Neck Gaiter / Bandana',
-            description: 'Dampen bandana before heading out for wind-chill convective cooling.',
+            titleKey: 'check_dr_r2_title',
+            descriptionKey: 'check_dr_r2_desc',
             icon: Icons.air,
           ),
           ChecklistItem(
             id: 'r3',
-            title: 'Insulated Water Flask',
-            description: 'Carry cold water; avoid energy drinks that cause kidney stress.',
+            titleKey: 'check_dr_r3_title',
+            descriptionKey: 'check_dr_r3_desc',
             icon: Icons.local_drink_outlined,
           ),
           ChecklistItem(
             id: 'r4',
-            title: 'Shaded Parking at Hubs',
-            description: 'Park under canopy; remove helmet the instant bike engine stops.',
+            titleKey: 'check_dr_r4_title',
+            descriptionKey: 'check_dr_r4_desc',
             icon: Icons.local_parking_outlined,
           ),
         ]);
@@ -108,26 +116,26 @@ class GuidanceController extends GetxController {
         currentChecklist.assignAll([
           ChecklistItem(
             id: 'f1',
-            title: 'Split-Shift Labor Planning',
-            description: 'Harvest from 05:30 to 09:30, then resume after 17:00.',
+            titleKey: 'check_fm_f1_title',
+            descriptionKey: 'check_fm_f1_desc',
             icon: Icons.wb_twilight_outlined,
           ),
           ChecklistItem(
             id: 'f2',
-            title: 'Livestock Water Troughs Full',
-            description: 'Animals need double water volume during UTCI >36°C heat spikes.',
+            titleKey: 'check_fm_f2_title',
+            descriptionKey: 'check_fm_f2_desc',
             icon: Icons.pets_outlined,
           ),
           ChecklistItem(
             id: 'f3',
-            title: 'Field Tarp Shade Stations',
-            description: 'Erect palm frond or mesh tarps every 200m across active plots.',
+            titleKey: 'check_fm_f3_title',
+            descriptionKey: 'check_fm_f3_desc',
             icon: Icons.roofing_outlined,
           ),
           ChecklistItem(
             id: 'f4',
-            title: 'Mineral & Salt Replenishment',
-            description: 'Add a pinch of salt to drinking jugs to replenish lost sodium.',
+            titleKey: 'check_fm_f4_title',
+            descriptionKey: 'check_fm_f4_desc',
             icon: Icons.grain_outlined,
           ),
         ]);
@@ -137,26 +145,26 @@ class GuidanceController extends GetxController {
         currentChecklist.assignAll([
           ChecklistItem(
             id: 'i1',
-            title: 'Damp Jute/Burlap on Windows',
-            description: 'Evaporative cooling lowers room temperature by 3°C to 5°C.',
+            titleKey: 'check_ir_i1_title',
+            descriptionKey: 'check_ir_i1_desc',
             icon: Icons.window_outlined,
           ),
           ChecklistItem(
             id: 'i2',
-            title: 'Night Cross-Draft Ventilation',
-            description: 'Open opposing high vents at 20:00 to purge daytime heat.',
+            titleKey: 'check_ir_i2_title',
+            descriptionKey: 'check_ir_i2_desc',
             icon: Icons.wind_power_outlined,
           ),
           ChecklistItem(
             id: 'i3',
-            title: 'Clay Zeer Pot Hydration Station',
-            description: 'Store drinking water in terracotta pots for natural cooling.',
+            titleKey: 'check_ir_i3_title',
+            descriptionKey: 'check_ir_i3_desc',
             icon: Icons.coffee_outlined,
           ),
           ChecklistItem(
             id: 'i4',
-            title: 'Elderly & Infant Shade Relocation',
-            description: 'Move vulnerable family members to tree shade between 12:00-15:30.',
+            titleKey: 'check_ir_i4_title',
+            descriptionKey: 'check_ir_i4_desc',
             icon: Icons.family_restroom_outlined,
           ),
         ]);
@@ -166,26 +174,26 @@ class GuidanceController extends GetxController {
         currentChecklist.assignAll([
           ChecklistItem(
             id: 'v1',
-            title: 'Ground Floor Relocation',
-            description: 'Stay in the lowest room of the house where air is coolest.',
+            titleKey: 'check_vn_v1_title',
+            descriptionKey: 'check_vn_v1_desc',
             icon: Icons.home_outlined,
           ),
           ChecklistItem(
             id: 'v2',
-            title: 'Cool Water Foot Soak',
-            description: 'Submerging feet in cool water rapidly lowers core body temperature.',
+            titleKey: 'check_vn_v2_title',
+            descriptionKey: 'check_vn_v2_desc',
             icon: Icons.bathtub_outlined,
           ),
           ChecklistItem(
             id: 'v3',
-            title: 'Hourly Water Glass Schedule',
-            description: 'Sip 200ml every hour even without feeling thirsty.',
+            titleKey: 'check_vn_v3_title',
+            descriptionKey: 'check_vn_v3_desc',
             icon: Icons.alarm_on_outlined,
           ),
           ChecklistItem(
             id: 'v4',
-            title: 'Emergency Contact Speed Dial',
-            description: 'Ensure community health worker or neighbor phone is readily accessible.',
+            titleKey: 'check_vn_v4_title',
+            descriptionKey: 'check_vn_v4_desc',
             icon: Icons.phone_in_talk_outlined,
           ),
         ]);
@@ -203,14 +211,12 @@ class GuidanceController extends GetxController {
   }
 
   Future<void> readChecklistAloud() async {
-    final role = _dashboard.activeRole.value.label;
+    final role = _dashboard.activeRole.value.localizedLabel;
     final items = currentChecklist.map((c) => '${c.title}: ${c.description}').join('. ');
-    await _tts.speak('Heat safety checklist for $role: $items');
+    await _tts.speak('$role: $items');
   }
 
   Future<void> readFirstAidAloud() async {
-    const text =
-        'Heat Stroke Emergency Protocol. Move victim to deep shade immediately. Lay them flat and elevate feet 30 centimeters. Douse body with cold water or wet towels. Call local emergency health services immediately. Do not give fluids if unconscious.';
-    await _tts.speak(text);
+    await _tts.speak('emergency_first_aid_speech'.tr);
   }
 }

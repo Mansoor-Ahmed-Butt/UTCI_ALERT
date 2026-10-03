@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/responsive.dart';
+import '../../../core/utils/utci_calculator.dart';
 import '../../controllers/dashboard_controller.dart';
 import '../../controllers/forecast_controller.dart';
 import '../../widgets/status_badge.dart';
@@ -11,7 +12,7 @@ class ForecastScreen extends GetView<ForecastController> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = context.isDark;
     final dashboard = Get.find<DashboardController>();
 
     return Scaffold(
@@ -19,13 +20,13 @@ class ForecastScreen extends GetView<ForecastController> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Heat Stress Forecast',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Text(
+              'forecast_title'.tr,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             Obx(
               () => Text(
-                '${dashboard.selectedCity.value.displayName} · Bioclimatic Projections',
+                '${dashboard.selectedCity.value.displayName} · ${'forecast_sub'.tr}',
                 style: TextStyle(
                   fontSize: 12,
                   color: isDark ? Colors.white60 : Colors.black54,
@@ -37,12 +38,12 @@ class ForecastScreen extends GetView<ForecastController> {
         actions: [
           IconButton(
             icon: const Icon(Icons.volume_up_outlined, color: AppColors.accent),
-            tooltip: 'Listen to forecast',
+            tooltip: 'listen_forecast_tooltip'.tr,
             onPressed: controller.readForecastAloud,
           ),
           IconButton(
             icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh forecast',
+            tooltip: 'refresh_forecast_tooltip'.tr,
             onPressed: controller.loadForecast,
           ),
         ],
@@ -169,13 +170,13 @@ class ForecastScreen extends GetView<ForecastController> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
+              Row(
                 children: [
-                  Icon(Icons.schedule, color: AppColors.accent, size: 20),
-                  SizedBox(width: 8),
+                  const Icon(Icons.schedule, color: AppColors.accent, size: 20),
+                  const SizedBox(width: 8),
                   Text(
-                    'Safe Outdoor Work Windows',
-                    style: TextStyle(
+                    'safe_work_windows'.tr,
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
                     ),
@@ -184,13 +185,13 @@ class ForecastScreen extends GetView<ForecastController> {
               ),
               InkWell(
                 onTap: controller.readForecastAloud,
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.volume_up, size: 16, color: AppColors.accent),
-                    SizedBox(width: 4),
+                    const Icon(Icons.volume_up, size: 16, color: AppColors.accent),
+                    const SizedBox(width: 4),
                     Text(
-                      'Listen',
-                      style: TextStyle(
+                      'listen'.tr,
+                      style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: AppColors.accent,
@@ -206,9 +207,9 @@ class ForecastScreen extends GetView<ForecastController> {
             children: [
               Expanded(
                 child: _windowBox(
-                  title: 'Morning Window',
+                  title: 'morning_window'.tr,
                   time: sw.morningWindow,
-                  status: 'Safe / Moderate',
+                  status: 'status_safe_moderate'.tr,
                   color: AppColors.noStress,
                   isDark: isDark,
                 ),
@@ -216,9 +217,9 @@ class ForecastScreen extends GetView<ForecastController> {
               const SizedBox(width: 8),
               Expanded(
                 child: _windowBox(
-                  title: 'Peak Danger',
+                  title: 'danger_window'.tr,
                   time: sw.dangerWindow,
-                  status: 'Very Strong',
+                  status: 'status_very_strong'.tr,
                   color: AppColors.veryStrongStress,
                   isDark: isDark,
                 ),
@@ -226,9 +227,9 @@ class ForecastScreen extends GetView<ForecastController> {
               const SizedBox(width: 8),
               Expanded(
                 child: _windowBox(
-                  title: 'Evening Window',
+                  title: 'evening_window'.tr,
                   time: sw.eveningWindow,
-                  status: 'Recommended',
+                  status: 'status_recommended'.tr,
                   color: AppColors.accent,
                   isDark: isDark,
                 ),
@@ -237,7 +238,7 @@ class ForecastScreen extends GetView<ForecastController> {
           ),
           const SizedBox(height: 12),
           Text(
-            sw.recommendation,
+            sw.localizedRecommendation,
             style: TextStyle(
               fontSize: 12,
               height: 1.4,
@@ -311,13 +312,13 @@ class ForecastScreen extends GetView<ForecastController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Hourly UTCI Timeline (24 Hours)',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+          Text(
+            'hourly_timeline_title'.tr,
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 4),
           Text(
-            'Physiological thermal stress calculated per hour',
+            'hourly_timeline_desc'.tr,
             style: TextStyle(
               fontSize: 12,
               color: isDark ? Colors.white54 : Colors.black45,
@@ -373,7 +374,7 @@ class ForecastScreen extends GetView<ForecastController> {
                             ),
                           ),
                           Text(
-                            'Temp: ${item.temperature.toStringAsFixed(0)}°C · Humidity: ${item.humidity.toStringAsFixed(0)}%',
+                            '${'temp_label'.tr}: ${item.temperature.toStringAsFixed(0)}°C · ${'humidity_label'.tr}: ${item.humidity.toStringAsFixed(0)}%',
                             style: TextStyle(
                               fontSize: 11,
                               color: isDark ? Colors.white54 : Colors.black45,
@@ -384,7 +385,7 @@ class ForecastScreen extends GetView<ForecastController> {
                     ),
                     StatusBadge(
                       category: item.category,
-                      label: item.isPeakDanger ? 'DANGER' : item.category,
+                      label: item.isPeakDanger ? 'danger_badge'.tr : UtciCalculator.getCategoryLabel(item.category),
                     ),
                   ],
                 ),
@@ -413,9 +414,9 @@ class ForecastScreen extends GetView<ForecastController> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                '7-Day Heatwave Risk Radar',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+              Text(
+                'forecast_7day_title'.tr,
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
               ),
               Container(
                 padding:
@@ -424,9 +425,9 @@ class ForecastScreen extends GetView<ForecastController> {
                   color: AppColors.accent.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: const Text(
-                  'ERA5-HEAT Model',
-                  style: TextStyle(
+                child: Text(
+                  'forecast_7day_badge'.tr,
+                  style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                     color: AppColors.accent,
@@ -437,7 +438,7 @@ class ForecastScreen extends GetView<ForecastController> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Detects extended multi-day heat episodes (3-5 day duration risk)',
+            'forecast_7day_desc'.tr,
             style: TextStyle(
               fontSize: 12,
               color: isDark ? Colors.white54 : Colors.black45,
@@ -463,7 +464,7 @@ class ForecastScreen extends GetView<ForecastController> {
                     SizedBox(
                       width: 72,
                       child: Text(
-                        d.dayLabel,
+                        d.localizedDayLabel,
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -477,7 +478,7 @@ class ForecastScreen extends GetView<ForecastController> {
                               size: 16, color: catColor),
                           const SizedBox(width: 8),
                           Text(
-                            'Max ${d.maxUtci.toStringAsFixed(0)}°C',
+                            '${'max_label'.tr} ${d.maxUtci.toStringAsFixed(0)}°C',
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
@@ -486,7 +487,7 @@ class ForecastScreen extends GetView<ForecastController> {
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            'Min ${d.minUtci.toStringAsFixed(0)}°C',
+                            '${'min_label'.tr} ${d.minUtci.toStringAsFixed(0)}°C',
                             style: TextStyle(
                               fontSize: 11,
                               color: isDark ? Colors.white54 : Colors.black45,
@@ -508,9 +509,9 @@ class ForecastScreen extends GetView<ForecastController> {
                                 AppColors.extremeStress.withValues(alpha: 0.4),
                           ),
                         ),
-                        child: const Text(
-                          'HEATWAVE',
-                          style: TextStyle(
+                        child: Text(
+                          'heatwave_label'.tr,
+                          style: const TextStyle(
                             fontSize: 9,
                             fontWeight: FontWeight.bold,
                             color: AppColors.extremeStress,
@@ -519,7 +520,7 @@ class ForecastScreen extends GetView<ForecastController> {
                       ),
                     ] else ...[
                       Text(
-                        'Normal',
+                        'normal_label'.tr,
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w500,

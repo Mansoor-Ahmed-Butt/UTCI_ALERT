@@ -11,7 +11,7 @@ class AiAdvisorScreen extends GetView<AiAdvisorController> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = context.isDark;
     final dashboard = Get.find<DashboardController>();
     final tts = Get.find<TtsService>();
 
@@ -31,13 +31,13 @@ class AiAdvisorScreen extends GetView<AiAdvisorController> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'AI Thermal Safety Advisor',
-                  style: TextStyle(fontSize: 16.5, fontWeight: FontWeight.bold),
+                Text(
+                  'ai_advisor_title'.tr,
+                  style: const TextStyle(fontSize: 16.5, fontWeight: FontWeight.bold),
                 ),
                 Obx(
                   () => Text(
-                    '${dashboard.activeRole.value.label} · ${dashboard.selectedCity.value.name}',
+                    '${dashboard.activeRole.value.localizedLabel} · ${dashboard.selectedCity.value.name}',
                     style: TextStyle(
                       fontSize: 11.5,
                       color: isDark ? Colors.white60 : Colors.black54,
@@ -250,13 +250,13 @@ class AiAdvisorScreen extends GetView<AiAdvisorController> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.auto_awesome, size: 14, color: AppColors.accent),
-                    SizedBox(width: 5),
+                    const Icon(Icons.auto_awesome, size: 14, color: AppColors.accent),
+                    const SizedBox(width: 5),
                     Text(
-                      'AI Heat Advisor',
-                      style: TextStyle(
+                      'ai_label'.tr,
+                      style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: AppColors.accent,
@@ -289,7 +289,7 @@ class AiAdvisorScreen extends GetView<AiAdvisorController> {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            isCurrentlySpeaking ? 'Stop' : 'Listen',
+                            isCurrentlySpeaking ? 'stop'.tr : 'listen'.tr,
                             style: TextStyle(
                               fontSize: 10.5,
                               fontWeight: FontWeight.bold,
@@ -331,18 +331,18 @@ class AiAdvisorScreen extends GetView<AiAdvisorController> {
             color: isDark ? AppColors.dividerDark : AppColors.dividerLight,
           ),
         ),
-        child: const Row(
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(
+            const SizedBox(
               width: 13,
               height: 13,
               child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.accent),
             ),
-            SizedBox(width: 9),
+            const SizedBox(width: 9),
             Text(
-              'Consulting AI Biometeorological Model...',
-              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500),
+              'ai_thinking'.tr,
+              style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500),
             ),
           ],
         ),
@@ -367,7 +367,7 @@ class AiAdvisorScreen extends GetView<AiAdvisorController> {
             child: TextField(
               controller: controller.textController,
               decoration: InputDecoration(
-                hintText: 'Ask thermal safety advice (e.g. hydration, work hours)...',
+                hintText: 'ai_hint'.tr,
                 hintStyle: TextStyle(
                   fontSize: 12.5,
                   color: isDark ? Colors.white38 : Colors.black38,

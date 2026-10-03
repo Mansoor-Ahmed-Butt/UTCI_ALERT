@@ -113,7 +113,7 @@ class _CitySelectorSheetState extends State<CitySelectorSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = context.isDark;
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.82,
@@ -144,13 +144,13 @@ class _CitySelectorSheetState extends State<CitySelectorSheet> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Select City or Region',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    Text(
+                      'select_city_title'.tr,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Worldwide Geocoding & Hyperlocal GPS',
+                      'select_city_sub'.tr,
                       style: TextStyle(
                         fontSize: 12,
                         color: isDark ? Colors.white54 : Colors.black45,
@@ -201,14 +201,14 @@ class _CitySelectorSheetState extends State<CitySelectorSheet> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Use Exact GPS Location & Geofence',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+                          Text(
+                            'use_exact_gps'.tr,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
                           ),
                           Text(
                             _isLocatingGps
-                                ? 'Pinpointing high-accuracy GPS & locality...'
-                                : 'Auto-detects real city, danger perimeter & native voice',
+                                ? 'gps_locating'.tr
+                                : 'gps_detected'.tr,
                             style: TextStyle(
                               fontSize: 11,
                               color: isDark ? Colors.white60 : Colors.black54,
@@ -231,7 +231,7 @@ class _CitySelectorSheetState extends State<CitySelectorSheet> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Search any city worldwide (e.g. Cairo, Riyadh, Lahore, Madrid)...',
+                hintText: 'search_worldwide_hint'.tr,
                 hintStyle: TextStyle(
                   fontSize: 13,
                   color: isDark ? Colors.white38 : Colors.black38,
@@ -271,7 +271,7 @@ class _CitySelectorSheetState extends State<CitySelectorSheet> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  _searchController.text.isEmpty ? 'Featured Global Hubs' : 'Search Results',
+                  _searchController.text.isEmpty ? 'featured_hubs'.tr : 'search_results'.tr,
                   style: TextStyle(
                     fontSize: 11.5,
                     fontWeight: FontWeight.bold,
@@ -280,7 +280,7 @@ class _CitySelectorSheetState extends State<CitySelectorSheet> {
                   ),
                 ),
                 Text(
-                  '${_displayedCities.length} locations',
+                  '${_displayedCities.length} ${'locations_count'.tr}',
                   style: TextStyle(
                     fontSize: 11,
                     color: isDark ? Colors.white38 : Colors.black38,
@@ -295,7 +295,7 @@ class _CitySelectorSheetState extends State<CitySelectorSheet> {
             child: _displayedCities.isEmpty
                 ? Center(
                     child: Text(
-                      'No matching cities found. Try another city name.',
+                      'no_cities_found'.tr,
                       style: TextStyle(fontSize: 13, color: isDark ? Colors.white38 : Colors.black38),
                     ),
                   )
@@ -311,7 +311,7 @@ class _CitySelectorSheetState extends State<CitySelectorSheet> {
                       final isSelected = city.name.toLowerCase() == widget.currentCity.name.toLowerCase() &&
                           (city.country.isEmpty || city.country.toLowerCase() == widget.currentCity.country.toLowerCase());
 
-                      final detectedLang = _langService.detectLanguageFromCountry(city.country, city.countryCode);
+                      final detectedLang = _langService.detectLanguageForCity(city);
 
                       return ListTile(
                         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

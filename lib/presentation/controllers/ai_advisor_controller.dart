@@ -40,23 +40,29 @@ class AiAdvisorController extends GetxController {
   DashboardController get _dashboard => Get.find<DashboardController>();
   NativeLanguage get activeLanguage => _langService.activeLanguage.value;
 
-  final List<String> quickPromptChips = const [
-    '💧 Hourly hydration plan',
-    '⏱️ Work/rest ratio',
-    '⚠️ Exhaustion vs Stroke',
-    '🛵 Rider helmet & asphalt',
-    '🏠 Cool roof without AC',
-    '🌾 Safe harvesting shift',
+  /// Dynamic getter so chips re-evaluate when locale changes.
+  List<String> get quickPromptChips => [
+    'prompt_hydration'.tr,
+    'prompt_work_rest'.tr,
+    'prompt_exhaustion_stroke'.tr,
+    'prompt_rider_gear'.tr,
+    'prompt_cool_roof'.tr,
+    'prompt_harvesting'.tr,
   ];
 
   @override
   void onInit() {
     super.onInit();
     _initWelcomeMessage();
+    // Re-generate welcome message when language changes.
+    ever(_langService.activeLanguage, (_) {
+      messages.clear();
+      _initWelcomeMessage();
+    });
   }
 
   void _initWelcomeMessage() {
-    final role = _dashboard.activeRole.value.label;
+    final role = _dashboard.activeRole.value.localizedLabel;
     final city = _dashboard.selectedCity.value.name;
     final utci = _dashboard.status.value?.value.toStringAsFixed(1) ?? '36.5';
     final category = _dashboard.status.value?.categoryLabel ?? 'Strong Heat Stress';
@@ -78,6 +84,9 @@ class AiAdvisorController extends GetxController {
     } else if (lang.code == 'es') {
       welcomeText =
           '¡Hola! Soy tu **Asesor de Seguridad Térmica IA** para $role en $city.\n\nCondición Actual: **$category ($utci°C UTCI)**.\n\nPregúntame sobre hidratación, rotación de descansos o primeros auxilios. ¡Toca el altavoz para escuchar en tu idioma!';
+    } else if (lang.code == 'hi') {
+      welcomeText =
+          'नमस्ते! मैं $city में $role के लिए आपका **थर्मल सेफ्टी AI सलाहकार** हूँ।\n\nवर्तमान ताप सूचकांक: **$category ($utci°C UTCI)**।\n\nपानी की मात्रा, कार्य-विराम चक्र, या हीट स्ट्रोक बचाव के बारे में कुछ भी पूछें। स्पीकर बटन दबाएँ और हिंदी में सुनें!';
     } else {
       welcomeText =
           'Hello! I am your **UTCI Thermal Safety Copilot**, specialized for $role in $city.\n\nCurrent Thermal Index: **$category ($utci°C UTCI)**.\n\nAsk me about hydration goals, work-rest cycles, or heat illness triage. Tap the speaker to listen hands-free in your native voice!';

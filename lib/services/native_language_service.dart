@@ -1,4 +1,6 @@
+import 'dart:ui';
 import 'package:get/get.dart';
+import '../data/models/city_location.dart';
 import '../data/models/user_role.dart';
 
 class NativeLanguage {
@@ -89,75 +91,156 @@ class NativeLanguageService extends GetxService {
     if (manual) {
       isAutoDetect.value = false;
     }
+    // Update GetX locale so all .tr keys re-render instantly
+    Get.updateLocale(_toLocale(language));
   }
 
-  NativeLanguage detectLanguageFromCountry(String countryName, String countryCode) {
-    final code = countryCode.trim().toUpperCase();
-    final name = countryName.toLowerCase();
-
-    // Arabic
-    const arabicCodes = {'EG', 'SA', 'AE', 'DZ', 'TN', 'MA', 'LY', 'SD', 'IQ', 'JO', 'LB', 'OM', 'KW', 'QA', 'BH', 'YE'};
-    if (arabicCodes.contains(code) ||
-        name.contains('egypt') ||
-        name.contains('saudi') ||
-        name.contains('emirates') ||
-        name.contains('algeria') ||
-        name.contains('tunisia') ||
-        name.contains('morocco') ||
-        name.contains('libya') ||
-        name.contains('sudan') ||
-        name.contains('iraq')) {
-      return supportedLanguages.firstWhere((l) => l.code == 'ar');
+  /// Maps a NativeLanguage to a dart:ui Locale for GetX.
+  Locale _toLocale(NativeLanguage lang) {
+    switch (lang.code) {
+      case 'ar':
+        return const Locale('ar', 'SA');
+      case 'ur':
+        return const Locale('ur', 'PK');
+      case 'sw':
+        return const Locale('sw', 'KE');
+      case 'fr':
+        return const Locale('fr', 'FR');
+      case 'es':
+        return const Locale('es', 'ES');
+      case 'hi':
+        return const Locale('hi', 'IN');
+      case 'en':
+      default:
+        return const Locale('en', 'US');
     }
+  }
 
-    // Urdu
-    if (code == 'PK' || name.contains('pakistan')) {
+  /// Detects the native language for a given CityLocation using city name,
+  /// country name, ISO country code, and administrative area.
+  NativeLanguage detectLanguageForCity(CityLocation city) {
+    return detectLanguageForLocation(
+      cityName: city.name,
+      countryName: city.country,
+      countryCode: city.countryCode,
+      adminArea: city.adminArea,
+    );
+  }
+
+  /// Comprehensive multi-factor language detection for any location worldwide.
+  NativeLanguage detectLanguageForLocation({
+    String? cityName,
+    String? countryName,
+    String? countryCode,
+    String? adminArea,
+  }) {
+    final code = (countryCode ?? '').trim().toUpperCase();
+    final country = (countryName ?? '').trim().toLowerCase();
+    final city = (cityName ?? '').trim().toLowerCase();
+    final admin = (adminArea ?? '').trim().toLowerCase();
+    final allText = '$city $country $admin $code';
+
+    // 1. Urdu (Pakistan: country code PK, province or known cities)
+    const urduCities = [
+      'lahore', 'karachi', 'islamabad', 'rawalpindi', 'faisalabad',
+      'multan', 'peshawar', 'quetta', 'sialkot', 'gujranwala', 'hyderabad'
+    ];
+    if (code == 'PK' ||
+        country.contains('pakistan') ||
+        urduCities.any((c) => city.contains(c) || allText.contains(c))) {
       return supportedLanguages.firstWhere((l) => l.code == 'ur');
     }
 
-    // Hindi
-    if (code == 'IN' || name.contains('india')) {
+    // 2. Arabic (Middle East, North Africa, Gulf)
+    const arabicCodes = {
+      'EG', 'SA', 'AE', 'DZ', 'TN', 'MA', 'LY', 'SD', 'IQ', 'JO', 'LB',
+      'OM', 'KW', 'QA', 'BH', 'YE', 'SY', 'PS', 'MR', 'SO', 'DJ', 'KM'
+    };
+    const arabicKeywords = [
+      'egypt', 'saudi', 'emirates', 'dubai', 'cairo', 'riyadh', 'algeria',
+      'tunisia', 'morocco', 'libya', 'sudan', 'iraq', 'jordan', 'lebanon',
+      'oman', 'kuwait', 'qatar', 'bahrain', 'yemen', 'syria', 'palestine',
+      'alexandria', 'giza', 'jeddah', 'mecca', 'medina', 'abu dhabi',
+      'doha', 'baghdad', 'amman', 'beirut', 'casablanca', 'rabat', 'tunis', 'algiers'
+    ];
+    if (arabicCodes.contains(code) || arabicKeywords.any((k) => allText.contains(k))) {
+      return supportedLanguages.firstWhere((l) => l.code == 'ar');
+    }
+
+    // 3. Hindi (India: country code IN, provinces or Indian metropolitan hubs)
+    const hindiCities = [
+      'delhi', 'mumbai', 'bangalore', 'bengaluru', 'kolkata', 'chennai',
+      'pune', 'jaipur', 'lucknow', 'kanpur', 'ahmedabad', 'bhopal', 'indore', 'patna'
+    ];
+    if (code == 'IN' ||
+        country.contains('india') ||
+        hindiCities.any((c) => city.contains(c) || allText.contains(c))) {
       return supportedLanguages.firstWhere((l) => l.code == 'hi');
     }
 
-    // Swahili
-    const swahiliCodes = {'KE', 'TZ', 'UG', 'RW'};
-    if (swahiliCodes.contains(code) ||
-        name.contains('kenya') ||
-        name.contains('tanzania') ||
-        name.contains('uganda')) {
+    // 4. Swahili (East Africa: Kenya, Tanzania, Uganda, Rwanda, Burundi)
+    const swahiliCodes = {'KE', 'TZ', 'UG', 'RW', 'BI'};
+    const swahiliKeywords = [
+      'kenya', 'tanzania', 'uganda', 'rwanda', 'nairobi', 'mombasa',
+      'dar es salaam', 'dodoma', 'zanzibar', 'arusha', 'kampala', 'kigali'
+    ];
+    if (swahiliCodes.contains(code) || swahiliKeywords.any((k) => allText.contains(k))) {
       return supportedLanguages.firstWhere((l) => l.code == 'sw');
     }
 
-    // French
-    const frenchCodes = {'FR', 'SN', 'CD', 'CI', 'ML', 'GN', 'CM', 'BF', 'NE', 'TG', 'BJ'};
-    if (frenchCodes.contains(code) ||
-        name.contains('france') ||
-        name.contains('senegal') ||
-        name.contains('congo') ||
-        name.contains('ivory coast') ||
-        name.contains('mali') ||
-        name.contains('cameroon')) {
-      return supportedLanguages.firstWhere((l) => l.code == 'fr');
-    }
-
-    // Spanish
-    const spanishCodes = {'ES', 'MX', 'CO', 'AR', 'PE', 'VE', 'CL', 'EC', 'GT', 'CU', 'BO', 'DO', 'HN', 'PY', 'SV', 'NI', 'CR', 'PA', 'UY'};
-    if (spanishCodes.contains(code) ||
-        name.contains('spain') ||
-        name.contains('mexico') ||
-        name.contains('colombia') ||
-        name.contains('argentina')) {
+    // 5. Spanish (Spain, Latin America)
+    const spanishCodes = {
+      'ES', 'MX', 'CO', 'AR', 'PE', 'VE', 'CL', 'EC', 'GT', 'CU', 'BO',
+      'DO', 'HN', 'PY', 'SV', 'NI', 'CR', 'PA', 'UY', 'PR', 'GQ'
+    };
+    const spanishKeywords = [
+      'spain', 'madrid', 'barcelona', 'mexico', 'colombia', 'argentina', 'peru',
+      'venezuela', 'chile', 'ecuador', 'guatemala', 'cuba', 'bolivia', 'dominican',
+      'honduras', 'paraguay', 'el salvador', 'nicaragua', 'costa rica', 'panama',
+      'uruguay', 'buenos aires', 'bogota', 'lima', 'santiago', 'sevilla', 'valencia'
+    ];
+    if (spanishCodes.contains(code) || spanishKeywords.any((k) => allText.contains(k))) {
       return supportedLanguages.firstWhere((l) => l.code == 'es');
     }
 
+    // 6. French (France, Francophone Africa, Quebec)
+    const frenchCodes = {
+      'FR', 'SN', 'CD', 'CI', 'ML', 'GN', 'CM', 'BF', 'NE', 'TG', 'BJ', 'CG', 'GA', 'MG'
+    };
+    const frenchKeywords = [
+      'france', 'paris', 'senegal', 'dakar', 'congo', 'kinshasa', 'ivory coast',
+      'cote d\'ivoire', 'abidjan', 'mali', 'bamako', 'cameroon', 'douala', 'yaounde',
+      'guinea', 'niger', 'burkina faso', 'togo', 'benin', 'marseille', 'lyon'
+    ];
+    if (frenchCodes.contains(code) || frenchKeywords.any((k) => allText.contains(k))) {
+      return supportedLanguages.firstWhere((l) => l.code == 'fr');
+    }
+
+    // Default to English (en-US)
     return supportedLanguages.firstWhere((l) => l.code == 'en');
   }
 
-  void autoUpdateForLocation(String countryName, String countryCode) {
-    if (isAutoDetect.value) {
+  /// Backward-compatible bridge for country-only detection.
+  NativeLanguage detectLanguageFromCountry(String countryName, String countryCode) {
+    return detectLanguageForLocation(countryName: countryName, countryCode: countryCode);
+  }
+
+  /// Automatically updates app language and reactive GetX locale when a city is selected.
+  /// When [force] is true (default when selecting city/region), language switches immediately.
+  void autoUpdateForCity(CityLocation city, {bool force = true}) {
+    if (force || isAutoDetect.value) {
+      final detected = detectLanguageForCity(city);
+      activeLanguage.value = detected;
+      Get.updateLocale(_toLocale(detected));
+    }
+  }
+
+  /// Automatically updates app language for location coordinates or reverse-geocoded place.
+  void autoUpdateForLocation(String countryName, String countryCode, {bool force = true}) {
+    if (force || isAutoDetect.value) {
       final detected = detectLanguageFromCountry(countryName, countryCode);
       activeLanguage.value = detected;
+      Get.updateLocale(_toLocale(detected));
     }
   }
 
@@ -171,7 +254,7 @@ class NativeLanguageService extends GetxService {
   }) {
     final language = lang ?? activeLanguage.value;
     final cat = category.toLowerCase();
-    final roleName = role.label;
+    final roleName = role.localizedLabel;
 
     switch (language.code) {
       case 'ar':

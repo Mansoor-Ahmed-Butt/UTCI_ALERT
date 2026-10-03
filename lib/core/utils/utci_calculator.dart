@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:get/get.dart';
 import '../../data/models/user_role.dart';
 
 /// Implements bioclimatic UTCI (Universal Thermal Climate Index) calculations
@@ -62,6 +63,9 @@ class UtciCalculator {
   }
 
   static String getCategoryLabel(String category) {
+    final key = 'heat_stress_${category.toLowerCase()}';
+    final translated = key.tr;
+    if (translated != key) return translated;
     switch (category.toLowerCase()) {
       case 'extreme':
         return 'Extreme Heat Stress';

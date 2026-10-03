@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 import 'app_text_styles.dart';
+export '../extensions/context_extensions.dart';
 
 class AppTheme {
   AppTheme._();
